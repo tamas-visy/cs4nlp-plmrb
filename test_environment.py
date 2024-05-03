@@ -16,9 +16,9 @@ PACKAGE_IMPORT_REPLACEMENTS = {
 def check() -> bool:
     # Check python version
     if sys.version_info.major != REQUIRED_VERSION['major']:
-        raise EnvironmentError(f"Expected major version {REQUIRED_VERSION['major']}, found {sys.version_info.major}")
+        raise RuntimeError(f"Expected major version {REQUIRED_VERSION['major']}, found {sys.version_info.major}")
     if sys.version_info.minor != REQUIRED_VERSION['minor']:
-        raise EnvironmentError(f"Expected minor version {REQUIRED_VERSION['minor']}, found {sys.version_info.minor}")
+        raise RuntimeError(f"Expected minor version {REQUIRED_VERSION['minor']}, found {sys.version_info.minor}")
     print("> Python version correct")
 
     # Check packages
@@ -54,7 +54,7 @@ def check() -> bool:
     if not SKIP_CUDA_CHECK:
         import torch
         if not torch.cuda.is_available():
-            raise EnvironmentError("Expected CUDA, but CUDA is not available")
+            raise RuntimeError("Expected CUDA, but CUDA is not available")
         print(f"> CUDA v{torch.cuda_version} found")
     else:
         print(f"! Not checking for CUDA")
