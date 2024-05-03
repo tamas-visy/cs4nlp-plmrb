@@ -38,10 +38,15 @@ def check() -> bool:
         print(f"\t> {module} available")
     print("> All packages available")
 
-    # Check for CUDA
+    # Check .env file
     from dotenv import find_dotenv, load_dotenv
     load_dotenv(find_dotenv())  # This loads .env
 
+    if not os.getenv("HELLO_FROM_ENV_FILE") == "ABCDEFGH":
+        raise RuntimeError(".env missing, invalid or test value is set incorrectly")
+    print("> .env usable")
+
+    # Check for CUDA
     _skip_cuda_check: Optional[str] = os.getenv("SKIP_CUDA_CHECK")
     match _skip_cuda_check:
         case "False" | "false" | "0" | None:
