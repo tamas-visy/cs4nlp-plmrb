@@ -15,3 +15,6 @@ def setup_logger(level=None):
 
     logger = logging.getLogger(__name__)
     logger.debug("Logger created")
+
+    # Increase level of annoying 3rd party loggers
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
