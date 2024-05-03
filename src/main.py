@@ -30,7 +30,7 @@ def main():
 
     # Evaluate encodings of LM using the probe
     from src.data.generate import generate
-    texts, sentiments = generate(templates=None, subjects=None, adjectives=None)
+    texts, sentiments = generate(templates=None, subjects=None, adjectives=None)  # TODO fill in
     encodings = lm.encode(texts)
     output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments
 
