@@ -26,3 +26,14 @@ def download_honest():
 def download_labdet():
     """Downloads the data used in LABDet."""
     raise NotImplementedError
+
+
+class Downloader:
+    @classmethod
+    def all(cls):
+        download_sst()
+        download_tweeteval()
+        download_mdsd()
+        download_eec()
+        download_honest()
+        download_labdet()

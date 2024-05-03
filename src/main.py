@@ -10,17 +10,34 @@ def main():
 
     logger.info("Starting main")
 
-    # TODO obtain raw datasets to data/raw
-    raise NotImplementedError("Can't obtain data")
+    # Obtain raw datasets to data/raw
+    from src.data.download import Downloader
+    Downloader.all()
 
-    # TODO potentially process data - encodings of LM, minimal groups
-    raise NotImplementedError("Can't process data")
+    from src.data.datasets import TextData, SentimentData, EncodingData
+    data: TextData = None  # TODO load
+    sentiments: SentimentData = None  # TODO load
 
-    # TODO train probe on encodings of LM
-    raise NotImplementedError("Can't train a probe on encodings of LM")
+    # Process data
+    from src.models.language_model import LanguageModel
+    lm: LanguageModel = None  # TODO create
+    encodings: EncodingData = lm.encode(data)  # TODO potentially save encodings
 
-    # TODO evaluate model using minimal groups
-    raise NotImplementedError("Can't evaluate model using minimal groups")
+    # Train probe on encodings of LM
+    from src.models.probe import Probe
+    probe: Probe = None  # TODO create
+    probe.train(dataset=(sentiments, encodings))  # TODO potentially save trained probe
+
+    # Evaluate encodings of LM using the probe
+    from src.data.generate import generate
+    texts, sentiments = generate(templates=None, subjects=None, adjectives=None)
+    encodings = lm.encode(texts)
+    output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments
+
+    # Evaluate model encodings
+    from src.models.evaluate import evaluate
+    results = evaluate(sentiments, output_sentiments)
+    logger.info(str(results))
 
 
 if __name__ == '__main__':

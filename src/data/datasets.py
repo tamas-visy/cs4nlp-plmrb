@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-LanguageData = List[str]
+TextData = List[str]
 """The abstracted away type we will use as input for generating encodings, consisting of strings"""
 
 SentimentData = List[np.ndarray]
@@ -13,5 +13,5 @@ EncodingData = List[np.ndarray]
 
 # TODO handle when some data is removed, so maybe use a pd.DataFrame so we can use it's index to connect X and Y
 
-ProbeDataset = List[Tuple[EncodingData, SentimentData]]
+ProbeDataset = Tuple[EncodingData, SentimentData]
 """The abstracted away type we will use as a dataset for training the probe, consisting of encodings and sentiments"""
