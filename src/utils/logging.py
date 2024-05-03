@@ -5,7 +5,7 @@ import os
 def setup_logger(level=None):
     if level is None:
         level = logging.getLevelNamesMapping()[os.getenv("LOGGING_LEVEL", default=logging.getLevelName(logging.INFO))]
-    logging_format = '{asctime}.{msecs:03.0f} | {levelname:.3s} | {name:^64s} | {message}'
+    logging_format = '{asctime}.{msecs:03.0f} | {name:^64s} | {levelname:.3s} | {message}'
     date_format = '%d-%m-%Y %H:%M:%S'
 
     logging.basicConfig(level=level,

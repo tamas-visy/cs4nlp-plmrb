@@ -13,5 +13,9 @@ EncodingData = List[np.ndarray]
 
 # TODO handle when some data is removed, so maybe use a pd.DataFrame so we can use it's index to connect X and Y
 
+TextDataset = Tuple[TextData, SentimentData]
+"""The abstracted away type we get, consisting of encodings and sentiments"""
+
+
 ProbeDataset = Tuple[EncodingData, SentimentData]
 """The abstracted away type we will use as a dataset for training the probe, consisting of encodings and sentiments"""
