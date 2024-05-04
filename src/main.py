@@ -1,6 +1,5 @@
 from typing import List, Tuple
 
-from datasets import Dataset
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -36,6 +35,7 @@ def main():
 
     # Train probe on encodings of LM
     from src.models.probe import Probe, LinearProbe
+    from datasets import Dataset
     probe: Probe = LinearProbe()  # TODO use proper Probe
     probe.train(dataset=Dataset.from_dict(dict(input=encodings, label=dataset_1["label"])))
     # TODO potentially save trained probe
