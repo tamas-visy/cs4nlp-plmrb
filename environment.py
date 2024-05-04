@@ -55,6 +55,8 @@ def verify() -> bool:
 
     if not os.getenv("HELLO_FROM_ENV_FILE") == "ABCDEFGH":
         raise RuntimeError(".env missing, invalid or test value is set incorrectly")
+    if os.getenv("PYTHONPATH") is None or os.getenv("PYTHONPATH") == "F:\\ULL\\PATH\\FROM\\DRIVE\\TO\\cs4nlp-plmrb":
+        raise RuntimeError(".env has default PYTHONPATH, please update it")
     print("> .env usable")
 
     # Check for CUDA

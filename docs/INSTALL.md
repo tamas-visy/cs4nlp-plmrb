@@ -27,7 +27,7 @@ Additionally, to avoid an error when running `test_environment.py`, you should s
 
 ## Config using .env
 
-Create a [.env](../.env) file in the repository root like this:
+Create a [".env"](../.env) file in the repository root like this:
 ```
 # Environment variables go here, can be read by `python-dotenv` package:
 #
@@ -42,9 +42,12 @@ Create a [.env](../.env) file in the repository root like this:
 #
 # DO NOT ADD THIS FILE TO VERSION CONTROL!
 HELLO_FROM_ENV_FILE = ABCDEFGH
+PYTHONPATH = F:\ULL\PATH\FROM\DRIVE\TO\cs4nlp-plmrb
 #   ----------------------------------------------------------------
 
 ```
+
+Update the variable `PYTHONPATH` to the appropriate value. This is necessary for the code to run in VS Code.
 
 After the last line, feel free to add any settings you want, such as `LOGGING_LEVEL = DEBUG` or `SKIP_CUDA_CHECK = True`.
 
