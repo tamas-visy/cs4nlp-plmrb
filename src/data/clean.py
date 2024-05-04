@@ -1,4 +1,4 @@
-from src.data.datasets import TextDataset
+from src.data.datatypes import TextDataset
 
 
 def clean_dataset(dataset: TextDataset, dummy=False) -> TextDataset:
@@ -6,6 +6,6 @@ def clean_dataset(dataset: TextDataset, dummy=False) -> TextDataset:
     # Can use NLTK or spaCy
     if not dummy:
         raise NotImplementedError
-    # Dummy version drops first row
-    # TODO use types that make this easier
-    return dataset[0][1:], dataset[1][1:]
+    # Dummy version drops rows with "London" in them
+    dataset = dataset.filter(lambda row: "London".lower() not in row['input'])
+    return dataset

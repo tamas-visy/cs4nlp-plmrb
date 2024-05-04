@@ -8,7 +8,7 @@ def setup_logger(level=None):
     logging_format = '{asctime}.{msecs:03.0f} | {name:^64s} | {levelname:.3s} | {message}'
     date_format = '%d-%m-%Y %H:%M:%S'
 
-    logging.basicConfig(level=level,
+    logging.basicConfig(level=logging.WARNING,
                         format=logging_format,
                         style='{',
                         datefmt=date_format)
@@ -16,5 +16,7 @@ def setup_logger(level=None):
     logger = logging.getLogger(__name__)
     logger.debug("Logger created")
 
-    # Increase level of annoying 3rd party loggers
-    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+    # We specifically set our logger to level, the rest to INFO
+    logging.getLogger("src").setLevel(level)
+
+

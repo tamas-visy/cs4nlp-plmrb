@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+from datasets import Dataset
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -14,33 +15,31 @@ def main():
 
     # Obtain raw datasets to data/raw
     from src.data.download import Downloader
-    Downloader.all(raise_notimplemented=False)  # TODO use proper one
+    Downloader.all(raise_notimplemented=False)
     logger.debug("Downloaded data")
 
-    from src.data.datasets import TextData, SentimentData, EncodingData
     from src.data.iohandler import IOHandler
-    dataset = IOHandler.load_dummy_dataset()  # TODO load proper dataset
-    logger.debug(f"Loaded dataset with {len(dataset[0])} inputs and {len(dataset[1])} labels")
+    # dataset_1 = IOHandler.load_dummy_dataset()
+    dataset_1 = IOHandler.load_sst()
+    logger.info(f"Loaded dataset with {len(dataset_1)} rows")
 
     from src.data.clean import clean_dataset
-    dataset = clean_dataset(dataset, dummy=True)  # TODO use proper version
-    logger.debug(f"Cleaned dataset, remaining inputs: {len(dataset[0])}")
+    dataset_1 = clean_dataset(dataset_1, dummy=True)  # TODO use proper version
+    logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
     # TODO save cleaned dataset
 
-    texts: TextData = dataset[0]
-    sentiments: SentimentData = dataset[1]
-
     # Process data
-    from src.models.language_model import LanguageModel, DummyLanguageModel
-    lm: LanguageModel = DummyLanguageModel()  # TODO use proper LM
-    encodings: EncodingData = lm.encode(texts)  # TODO potentially save encodings
-    logger.debug(f"Generated {len(encodings)} encodings")
+    from src.models.language_model import LanguageModel, GloveLanguageModel
+    lm: LanguageModel = GloveLanguageModel()
+    from src.data.datatypes import EncodingData
+    encodings: EncodingData = lm.encode(dataset_1["input"])  # TODO potentially save encodings
 
     # Train probe on encodings of LM
-    from src.models.probe import Probe, DummyProbe
-    probe: Probe = DummyProbe()  # TODO use proper Probe
-    probe.train(dataset=(encodings, sentiments))  # TODO potentially save trained probe
-    logger.debug(f"Trained probe")
+    from src.models.probe import Probe, LinearProbe
+    probe: Probe = LinearProbe()  # TODO use proper Probe
+    probe.train(dataset=Dataset.from_dict(dict(input=encodings, label=dataset_1["label"])))
+    # TODO potentially save trained probe
+    logger.info(f"Trained probe")
 
     # Evaluate encodings of LM using the probe
     from src.data.generate import generate
@@ -49,18 +48,17 @@ def main():
     subjects: List[str] = IOHandler.load_dummy_subjects()
     adjectives: Tuple[List[str], List[str], List[str]] = IOHandler.load_dummy_adjectives()
 
-    dataset = generate(templates, subjects, adjectives)
-    logger.debug(f"Generated {len(dataset[0])} sentences")
-    texts, sentiments = dataset
-    encodings = lm.encode(texts)  # TODO save LM encodings of templates
+    dataset_2 = generate(templates, subjects, adjectives)
+    logger.info(f"Generated {len(dataset_2)} sentences")
+    encodings = lm.encode(dataset_2["input"])  # TODO save LM encodings of templates
     output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments
-    logger.debug(f"Generated predictions")
+    logger.info(f"Generated predictions")
 
     # Evaluate model encodings
     from src.models.evaluate import evaluate
-    results = evaluate(sentiments, output_sentiments, dummy=True)  # TODO use proper evaluation
+    results = evaluate(dataset_2, output_sentiments)
     logger.debug(f"Evaluated sentiments")
-    logger.info(f"The results are {str(results)}")
+    logger.info(f"The results are:\n{results}")
 
 
 if __name__ == '__main__':
