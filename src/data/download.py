@@ -41,7 +41,9 @@ class Downloader:
     @classmethod
     def download_tweeteval(cls):
         """Downloads the TweetEval dataset."""
-        raise NotImplementedError
+        if not os.path.exists(IOHandler.raw_path_to("tweeteval")):
+            load_dataset("tweet_eval", "sentiment", cache_dir=IOHandler.raw_path_to("tweeteval"))
+            # there are also other tasks in tweeteval like emotion, hate, etc. but we only use sentiment (0,1,2) for now
 
     @classmethod
     def download_mdsd(cls):
