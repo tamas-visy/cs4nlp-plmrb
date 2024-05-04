@@ -13,7 +13,18 @@ PACKAGE_IMPORT_REPLACEMENTS = {
 }
 
 
-def check() -> bool:
+def get_flag(name: str) -> bool:
+    _val: Optional[str] = os.getenv(name)
+    match _val:
+        case "False" | "false" | "0" | None:
+            return False
+        case "True" | "true" | "1":
+            return True
+        case _:
+            raise ValueError(f"Can't parse value of {name}=\"{_val}\"")
+
+
+def verify() -> bool:
     # Check python version
     if sys.version_info.major != REQUIRED_VERSION['major']:
         raise RuntimeError(f"Expected major version {REQUIRED_VERSION['major']}, found {sys.version_info.major}")
@@ -47,14 +58,7 @@ def check() -> bool:
     print("> .env usable")
 
     # Check for CUDA
-    _skip_cuda_check: Optional[str] = os.getenv("SKIP_CUDA_CHECK")
-    match _skip_cuda_check:
-        case "False" | "false" | "0" | None:
-            SKIP_CUDA_CHECK = False
-        case "True" | "true" | "1":
-            SKIP_CUDA_CHECK = True
-        case _:
-            raise ValueError(f"Can't parse value of SKIP_CUDA_CHECK=\"{_skip_cuda_check}\"")
+    SKIP_CUDA_CHECK = get_flag("SKIP_CUDA_CHECK")
 
     if not SKIP_CUDA_CHECK:
         import torch
@@ -70,7 +74,7 @@ def check() -> bool:
 
 
 def main():
-    check()
+    verify()
 
 
 if __name__ == '__main__':

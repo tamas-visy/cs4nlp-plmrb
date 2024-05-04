@@ -90,18 +90,14 @@ class Downloader:
         ]
         df = pd.DataFrame.from_records(data, columns=["Template"])
         df.to_csv(IOHandler.raw_path_to("dummy_templates.csv"))
-        # Subjects
-        data = [
-            ["cats"],
-            ["dogs"],
-            ["my family"],
-            ["scientists"],
-            ["US presidents"],
-            ["Shrek"],
-            ["the absolutely worst people you can come up with"],
-        ]
-        df = pd.DataFrame.from_records(data, columns=["Subject"])
-        df.to_csv(IOHandler.raw_path_to("dummy_subjects.csv"))
+        # Groups
+        data = dict(animals=["cats", "dogs", "Donkey and his magical friends",
+                             "wolves", "sharks"],
+                    people=["my family", "scientists", "US presidents",
+                            "Shrek", "the absolutely worst people you can come up with"])
+        df = pd.DataFrame.from_dict(data)
+        # We expect the groups to have same length (for fairness when comparing), so we can save as columns of csv
+        df.to_csv(IOHandler.raw_path_to("dummy_groups.csv"))
         # Adjectives
         data = [
             ["smelly", 0, 0, 1],

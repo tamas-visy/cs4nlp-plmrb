@@ -1,11 +1,12 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from dotenv import load_dotenv, find_dotenv
 
 
 def main():
-    import test_environment
-    test_environment.check()
+    import environment
+    if not environment.get_flag("SKIP_VERIFYING_ENVIRONMENT"):
+        environment.verify()
 
     import logging
     logger = logging.getLogger("src.main")
@@ -18,7 +19,7 @@ def main():
     logger.debug("Downloaded data")
 
     from src.data.iohandler import IOHandler
-    # dataset_1 = IOHandler.load_dummy_dataset()
+    dataset_1 = IOHandler.load_dummy_dataset()
     dataset_1 = IOHandler.load_sst()
     logger.info(f"Loaded dataset with {len(dataset_1)} rows")
 
@@ -45,10 +46,10 @@ def main():
     from src.data.generate import generate
     # TODO use not dummy values
     templates: List[str] = IOHandler.load_dummy_templates()
-    subjects: List[str] = IOHandler.load_dummy_subjects()
+    groups: Dict[str, List[str]] = IOHandler.load_dummy_groups()
     adjectives: Tuple[List[str], List[str], List[str]] = IOHandler.load_dummy_adjectives()
 
-    dataset_2 = generate(templates, subjects, adjectives)
+    dataset_2 = generate(templates, groups, adjectives)
     logger.info(f"Generated {len(dataset_2)} sentences")
     encodings = lm.encode(dataset_2["input"])  # TODO save LM encodings of templates
     output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments

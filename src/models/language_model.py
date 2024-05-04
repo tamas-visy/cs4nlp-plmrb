@@ -39,7 +39,7 @@ class GloveLanguageModel(LanguageModel):
         CommonCrawl840B = "https://nlp.stanford.edu/data/glove.840B.300d.zip"
         Twitter27B = "https://nlp.stanford.edu/data/glove.twitter.27B.zip"
 
-    def __init__(self, version=GloveVersion.Wikipedia6B, embedding_dim=100, aggregation=np.sum):
+    def __init__(self, version=GloveVersion.Wikipedia6B, embedding_dim=100, aggregation=np.mean):
         Downloader.download_glove(version)
         self.embedding_dim = embedding_dim
         self.embeddings = IOHandler.load_glove_embeddings(version, self.embedding_dim)

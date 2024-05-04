@@ -36,9 +36,9 @@ class IOHandler:
         return df["Template"].values.tolist()
 
     @classmethod
-    def load_dummy_subjects(cls) -> List[str]:
-        df = pd.read_csv(cls.raw_path_to("dummy_subjects.csv"), index_col=0)
-        return df["Subject"].values.tolist()
+    def load_dummy_groups(cls) -> Dict[str, List[str]]:
+        df = pd.read_csv(cls.raw_path_to("dummy_groups.csv"), index_col=0)
+        return df.to_dict(orient="list")
 
     @classmethod
     def load_dummy_adjectives(cls) -> Tuple[List[str], List[str], List[str]]:
