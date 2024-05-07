@@ -53,7 +53,15 @@ class Downloader:
     @classmethod
     def download_eec(cls):
         """Downloads the Equity Evaluation Corpus."""
-        raise NotImplementedError
+        cls._download_and_extract_zip("EEC",
+                                      url="https://saifmohammad.com/WebDocs/EEC/Equity-Evaluation-Corpus.zip",
+                                      kwargs=dict(headers={
+                                          # Default Python UA is rejected...
+                                          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                                                        "AppleWebKit/537.36 (KHTML,"
+                                                        "like Gecko) Chrome/42.0.2311.135 Safari/537.36 "
+                                                        "Edge/12.246"})
+                                      )
 
     @classmethod
     def download_honest(cls):
@@ -115,14 +123,17 @@ class Downloader:
         cls._download_and_extract_zip(f"GloVe{version.name}", url=version.value)
 
     @classmethod
-    def _download_and_extract_zip(cls, name, url, force_download=False, force_extract=False):
+    def _download_and_extract_zip(cls, name, url, kwargs=None, force_download=False, force_extract=False):
+        if kwargs is None:
+            kwargs = dict()
         if not os.path.exists(IOHandler.raw_path_to(f"{name}.zip")) or force_download:
             logger.debug(f"Requesting {url} to {IOHandler.raw_path_to(f'{name}.zip')}")
-            r = requests.get(url, stream=True)
+            r = requests.get(url, stream=True, **kwargs)
+            assert r.status_code == 200, "Status is not OK"
             total = int(r.headers.get('content-length', 0))
             with open(IOHandler.raw_path_to(f"{name}.zip"), 'wb') as file:
                 with tqdm(total=total, mininterval=1) as progress:
-                    for data in r.iter_content(chunk_size=1024*1024):
+                    for data in r.iter_content(chunk_size=1024 * 1024):
                         written = file.write(data)
                         progress.update(written)
         if not os.path.exists(IOHandler.raw_path_to(name)) or force_extract:
