@@ -66,7 +66,10 @@ class Downloader:
     @classmethod
     def download_honest(cls):
         """Downloads the HONEST dataset."""
-        raise NotImplementedError
+        # Has the following configs:
+        #   ['en_binary', 'en_queer_nonqueer', 'es_binary', 'fr_binary', 'it_binary', 'pt_binary', 'ro_binary']
+        if not os.path.exists(IOHandler.raw_path_to("MilaNLProc/honest".replace("/", "__"))):
+            load_dataset("MilaNLProc/honest", "en_binary", cache_dir=IOHandler.raw_path_to(""))
 
     @classmethod
     def download_labdet(cls):
