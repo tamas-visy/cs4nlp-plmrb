@@ -68,7 +68,7 @@ def verify() -> bool:
             raise RuntimeError("Expected CUDA, but CUDA is not available")
         print(f"> CUDA v{torch.cuda_version} found")
     else:
-        print(f"! Not checking for CUDA")
+        print("! Not checking for CUDA")
 
     # Finally
     print("> ALL CHECKS PASSED")
