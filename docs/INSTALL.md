@@ -11,6 +11,12 @@ conda create --name cs4nlp-plmrb python=3.11
 ```
 
 ```commandline
+conda init
+```
+
+Then close and re-open the shell.
+
+```commandline
 conda activate cs4nlp-plmrb
 ```
 
@@ -54,5 +60,5 @@ After the last line, feel free to add any settings you want, such as `LOGGING_LE
 ## Test environment
 Test environment with
 ```commandline
-python test_environment.py
+python environment.py
 ```
