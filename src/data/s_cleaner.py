@@ -28,11 +28,19 @@ def ner_filter(text):
         if isinstance(entity, nltk.tree.Tree):
             if entity.label() == 'PERSON':
                 processed_sentence.append('[NAME]')
+            elif entity.label() == 'GPE':  # Filter out geopolitical entities
+                processed_sentence.append('')  # Replace with empty string
             else:
-                processed_sentence.extend([word for word, tag in entity])
+                # Check for NORP-like entities based on keywords or patterns
+                entity_text = ' '.join(word for word, tag in entity.leaves())
+                if any(keyword in entity_text.lower() for keyword in ['nation', 'country', 'religion', 'religious']):
+                    processed_sentence.append('')  # Replace with empty string
+                else:
+                    processed_sentence.extend([word for word, tag in entity])
         else:
             processed_sentence.append(entity[0])
     return ' '.join(processed_sentence)
+
 
 def process_sentence(sentence):
     processed_sentence = ner_filter(sentence)
