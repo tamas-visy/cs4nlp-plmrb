@@ -19,7 +19,7 @@ def main():
     logger.debug("Downloaded data")
 
     from src.data.iohandler import IOHandler
-    dataset_1 = IOHandler.load_dummy_dataset()
+    # dataset_1 = IOHandler.load_dummy_dataset()
     dataset_1 = IOHandler.load_sst()
     logger.info(f"Loaded dataset with {len(dataset_1)} rows")
 
@@ -43,13 +43,16 @@ def main():
     logger.info(f"Trained probe")
 
     # Evaluate encodings of LM using the probe
-    from src.data.generate import generate
-    # TODO use not dummy values
-    templates: List[str] = IOHandler.load_dummy_templates()
-    groups: Dict[str, List[str]] = IOHandler.load_dummy_groups()
-    adjectives: Tuple[List[str], List[str], List[str]] = IOHandler.load_dummy_adjectives()
+    dataset_2: Dataset
+    # from src.data.generate import generate
+    # templates: List[str] = IOHandler.load_dummy_templates()
+    # groups: Dict[str, List[str]] = IOHandler.load_dummy_groups()
+    # adjectives: Tuple[List[str], List[str], List[str]] = IOHandler.load_dummy_adjectives()
+    # dummy_generated = generate(templates, groups, adjectives)
+    # dataset_2 = dummy_generated
 
-    dataset_2 = generate(templates, groups, adjectives)
+    dataset_2 = IOHandler.load_labdet_test()
+
     logger.info(f"Generated {len(dataset_2)} sentences")
     encodings = lm.encode(dataset_2["input"])  # TODO save LM encodings of templates
     output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments

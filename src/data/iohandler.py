@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import List, Tuple, Dict
 
@@ -5,7 +6,7 @@ import numpy as np
 import pandas as pd
 from datasets import load_dataset, Dataset
 
-from src.data.datatypes import TextDataset
+from src.data.datatypes import TextDataset, ProbeDataset, GroupsDataset
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,38 @@ class IOHandler:
     @classmethod
     def load_tweeteval(cls) -> TextDataset:
         dataset = load_dataset(IOHandler.raw_path_to("tweeteval"))
-        dataset = dataset.filter(lambda row: 1 in row["label"]) #remove neutral
-        dataset = dataset.map(lambda row: row.update({"label": 1}) if row["label"] == 2 else row) #convert positive to 1
+        dataset = dataset.filter(lambda row: 1 in row["label"])  # remove neutral
+        dataset = dataset.map(
+            lambda row: row.update({"label": 1}) if row["label"] == 2 else row)  # convert positive to 1
         return dataset.rename_columns(dict(sentence="input", idx="index"))["train"]
+
+    @classmethod
+    def load_labdet_test(cls) -> ProbeDataset | GroupsDataset:
+        """Loads the english LABDet test set, which contains different nationalities with neutral adjectives."""
+        dataset = Dataset.from_json(IOHandler.raw_path_to("LABDet/LABDet-main/test/en.json"))
+        with open(IOHandler.raw_path_to("LABDet/LABDet-main/Templates/en_template.json")) as f:
+            data = json.load(f)
+        adjective_map = dict()
+        pos_adj = data["sentiment_templates"][0]["pos_adj"]
+        for adj in pos_adj:
+            adjective_map[adj] = 1
+        neg_adj = data["sentiment_templates"][0]["neg_adj"]
+        for adj in neg_adj:
+            adjective_map[adj] = 0
+        neutral_adj = data["artificial_experiments"]["neutral_adj"]
+        for adj in neutral_adj:
+            adjective_map[adj] = 0.5
+
+        nationality_map = data["alternatives"]
+
+        dataset = dataset.add_column(name="label",
+                                     column=[adjective_map[dataset[i]["adj"]] for i in range(len(dataset))])
+
+        def nationality_map_func(row):
+            row.update({"nationality": nationality_map[row["nationality"]]})
+            return row
+
+        dataset = dataset.map(nationality_map_func)
+        dataset = dataset.rename_columns(dict(sentence="input", nationality="group"))
+        # dataset = dataset.filter(lambda row: "mask" not in row["group"])
+        return dataset

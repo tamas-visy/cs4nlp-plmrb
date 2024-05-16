@@ -74,7 +74,8 @@ class Downloader:
     @classmethod
     def download_labdet(cls):
         """Downloads the data used in LABDet."""
-        raise NotImplementedError
+        cls._download_and_extract_zip("LABDet",
+                                      url="https://github.com/akoksal/LABDet/archive/refs/heads/main.zip")
 
     @classmethod
     def create_dummy(cls):
