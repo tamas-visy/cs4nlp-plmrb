@@ -66,8 +66,18 @@ class IOHandler:
         return dataset.rename_columns(dict(sentence="input", idx="index"))["train"]
 
     @classmethod
-    def load_tweeteval(cls) -> TextDataset:
+    def load_tweeteval(cls) -> Dataset:
         dataset = load_dataset(IOHandler.raw_path_to("tweeteval"))
-        dataset = dataset.filter(lambda row: 1 in row["label"]) #remove neutral
-        dataset = dataset.map(lambda row: row.update({"label": 1}) if row["label"] == 2 else row) #convert positive to 1
-        return dataset.rename_columns(dict(sentence="input", idx="index"))["train"]
+        dataset = dataset.filter(cls._remove_neutral)
+        dataset = dataset.map(cls._convert_positive_to_one)
+        return dataset.rename_columns(dict(text="input"))
+
+    @staticmethod
+    def _remove_neutral(row):
+        return row["label"] != 1
+
+    @staticmethod
+    def _convert_positive_to_one(row):
+        if row["label"] == 2:
+            row["label"] = 1
+        return row
