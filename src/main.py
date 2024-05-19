@@ -61,6 +61,10 @@ def main():
     # dataset_2 = dummy_generated
     dataset_2 = IOHandler.load_labdet_test()
 
+    if DEVELOP_MODE:
+        dataset_2 = dataset_2.shuffle(seed=42).select(range(100))
+        logger.debug(f"Subsampled data to {len(dataset_2)} rows")
+
     logger.info(f"Generated {len(dataset_2)} sentences")
     encodings = lm.encode(dataset_2["input"])  # TODO save LM encodings of templates
     output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments

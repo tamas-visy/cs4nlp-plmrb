@@ -23,6 +23,6 @@ ProbeDataset = Dataset
 """The abstracted away type we will use as a dataset for training the probe, consisting of encodings and sentiments.
 Features are input and label"""
 
-GroupsDataset = Dataset
+GroupedSubjectsDataset = Dataset
 """The abstracted away type we will use as a dataset for evaluating the probe, consisting of groups of subjects
- and sentiments. Features are group and label"""
+ and sentiments. Features are group, subject and label"""

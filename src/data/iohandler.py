@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from datasets import load_dataset, Dataset, ClassLabel
 
-from src.data.datatypes import TextDataset, ProbeDataset, GroupsDataset
+from src.data.datatypes import TextDataset, ProbeDataset, GroupedSubjectsDataset
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class IOHandler:
         return dataset
 
     @classmethod
-    def load_labdet_test(cls) -> ProbeDataset | GroupsDataset:
+    def load_labdet_test(cls) -> ProbeDataset | GroupedSubjectsDataset:
         """Loads the english LABDet test set, which contains different nationalities with neutral adjectives."""
         dataset = Dataset.from_json(IOHandler.raw_path_to("LABDet/LABDet-main/test/en.json"))
         with open(IOHandler.raw_path_to("LABDet/LABDet-main/Templates/en_template.json")) as f:
@@ -109,6 +109,8 @@ class IOHandler:
 
         dataset = dataset.add_column(name="label",
                                      column=[adjective_map[dataset[i]["adj"]] for i in range(len(dataset))])
+        dataset = dataset.add_column(name="subject",
+                                     column=dataset["nationality"])
 
         def nationality_map_func(row):
             row.update({"nationality": nationality_map[row["nationality"]]})
