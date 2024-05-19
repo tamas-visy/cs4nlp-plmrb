@@ -1,5 +1,7 @@
 import logging
 
+from sklearn.neural_network import MLPRegressor
+from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
 from src.data.datatypes import EncodingData, SentimentData, ProbeDataset
 
@@ -22,14 +24,40 @@ class Probe:
         raise NotImplementedError
 
 
-class LinearProbe(Probe):
-    """A probe performing linear regression"""
-
-    def __init__(self):
-        self._model = LinearRegression()
+class SKLearnProbe(Probe):
+    """A base class that can be used by scikit-learn predictors"""
+    def __init__(self, model=None):
+        if model is None:
+            raise ValueError
+        self._model = model
 
     def _train(self, dataset: ProbeDataset):
         self._model.fit(dataset["input"], dataset["label"])
 
     def _predict(self, data: EncodingData) -> SentimentData:
         return self._model.predict(data)
+
+
+class LinearProbe(SKLearnProbe):
+    """A probe performing linear regression"""
+
+    def __init__(self):
+        super().__init__(LinearRegression())
+
+
+class SVMProbe(SKLearnProbe):
+    """A probe based on Support Vector Machines. Can perform single variable regression"""
+
+    def __init__(self):
+        super().__init__(SVR())
+
+    def _train(self, dataset: ProbeDataset):
+        if len(dataset) > 10_000:
+            logger.warning(f"{self.__class__.__name__}'s train time is more than quadratic. This could be slow")
+        super()._train(dataset)
+
+
+class MLPProbe(SKLearnProbe):
+    """A probe using a Multilayer perceptron with 2 hidden layers and early stopping."""
+    def __init__(self):
+        super().__init__(MLPRegressor(hidden_layer_sizes=[128, 128], early_stopping=True))

@@ -44,22 +44,26 @@ def main():
     encodings: EncodingData = lm.encode(dataset_1["input"])  # TODO potentially save encodings
 
     # Train probe on encodings of LM
-    from src.models.probe import Probe, LinearProbe
+    from src.models.probe import Probe, MLPProbe
     from datasets import Dataset
-    probe: Probe = LinearProbe()  # TODO use proper Probe
+    probe: Probe = MLPProbe()
     probe.train(dataset=Dataset.from_dict(dict(input=encodings, label=dataset_1["label"])))
     # TODO potentially save trained probe
     logger.info(f"Trained probe")
 
     # Evaluate encodings of LM using the probe
     dataset_2: Dataset
-    # from src.data.generate import generate
-    # templates: List[str] = IOHandler.load_dummy_templates()
-    # groups: Dict[str, List[str]] = IOHandler.load_dummy_groups()
-    # adjectives: Tuple[List[str], List[str], List[str]] = IOHandler.load_dummy_adjectives()
-    # dummy_generated = generate(templates, groups, adjectives)
-    # dataset_2 = dummy_generated
-    dataset_2 = IOHandler.load_labdet_test()
+    if DEVELOP_MODE:
+        # We have a good expectation of how these subjects should be ordered
+        #   so we evaluate them when in DEVELOP_MODE
+        from src.data.generate import generate
+        templates = IOHandler.load_dummy_templates()
+        groups = IOHandler.load_dummy_groups()
+        adjectives = IOHandler.load_dummy_adjectives()
+        dummy_generated = generate(templates, groups, adjectives)
+        dataset_2 = dummy_generated
+    else:
+        dataset_2 = IOHandler.load_labdet_test()
 
     if DEVELOP_MODE:
         dataset_2 = dataset_2.shuffle(seed=42).select(range(100))
