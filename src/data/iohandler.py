@@ -67,21 +67,19 @@ class IOHandler:
         return dataset.rename_columns(dict(sentence="input", idx="index"))["train"]
 
     @classmethod
-    def load_tweeteval(cls) -> Dataset:
+    def load_tweeteval(cls) -> TextDataset:
+        # Negative would be 0
+        TWEETEVAL_NEUTRAL_LABEL, TWEETEVAL_POSITIVE_LABEL = 1, 2
         dataset = load_dataset(IOHandler.raw_path_to("tweeteval"))
-        dataset = dataset.filter(cls._remove_neutral)
-        dataset = dataset.map(cls._convert_positive_to_one)
+
+        def _convert_positive_to_one(row):
+            if row["label"] == TWEETEVAL_POSITIVE_LABEL:
+                row["label"] = 1  # "positive"
+            return row
+
+        dataset = dataset.filter(lambda row: row["label"] != TWEETEVAL_NEUTRAL_LABEL)
+        dataset = dataset.map(_convert_positive_to_one)
         return dataset.rename_columns(dict(text="input"))
-
-    @staticmethod
-    def _remove_neutral(row):
-        return row["label"] != 1
-
-    @staticmethod
-    def _convert_positive_to_one(row):
-        if row["label"] == 2:
-            row["label"] = 1
-        return row
 
     @classmethod
     def load_labdet_test(cls) -> ProbeDataset | GroupsDataset:
