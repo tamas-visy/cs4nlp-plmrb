@@ -4,7 +4,7 @@ from typing import List, Tuple, Dict
 
 import numpy as np
 import pandas as pd
-from datasets import load_dataset, Dataset
+from datasets import load_dataset, Dataset, ClassLabel
 
 from src.data.datatypes import TextDataset, ProbeDataset, GroupsDataset
 
@@ -64,7 +64,10 @@ class IOHandler:
     @classmethod
     def load_sst(cls) -> TextDataset:
         dataset = load_dataset(IOHandler.raw_path_to("sst2"))
-        return dataset.rename_columns(dict(sentence="input", idx="index"))["train"]
+        dataset = dataset.remove_columns(["idx"])
+        dataset = dataset.rename_column("sentence", "input")
+        dataset = dataset.rename_columns(dict())["train"]
+        return dataset
 
     @classmethod
     def load_tweeteval(cls) -> TextDataset:
@@ -77,9 +80,13 @@ class IOHandler:
                 row["label"] = 1  # "positive"
             return row
 
+        # Remove neutral rows and update the features
         dataset = dataset.filter(lambda row: row["label"] != TWEETEVAL_NEUTRAL_LABEL)
+        dataset = dataset.cast_column("label", ClassLabel(num_classes=2, names=['negative', 'positive']))
+
         dataset = dataset.map(_convert_positive_to_one)
-        return dataset.rename_columns(dict(text="input"))["test"]
+        dataset = dataset.rename_columns(dict(text="input"))["test"]
+        return dataset
 
     @classmethod
     def load_labdet_test(cls) -> ProbeDataset | GroupsDataset:

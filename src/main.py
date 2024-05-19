@@ -5,11 +5,14 @@ def main():
     import environment
     if not environment.get_flag("SKIP_VERIFYING_ENVIRONMENT"):
         environment.verify()
+    DEVELOP_MODE = environment.get_flag("DEVELOP_MODE")
 
     import logging
     logger = logging.getLogger("src.main")
 
     logger.info("Starting main")
+    if DEVELOP_MODE:
+        logger.warning("DEVELOP_MODE is enabled")
 
     # Obtain raw datasets to data/raw
     from src.data.download import Downloader
@@ -17,14 +20,22 @@ def main():
     logger.debug("Downloaded data")
 
     from src.data.iohandler import IOHandler
+    from datasets import concatenate_datasets
     # dataset_1 = IOHandler.load_dummy_dataset()
-    dataset_1 = IOHandler.load_sst()
+    # Note: to concatenate datasets, they must have compatible features
+    dataset_1 = concatenate_datasets(
+        [IOHandler.load_sst(),
+         IOHandler.load_tweeteval()])
     logger.info(f"Loaded dataset with {len(dataset_1)} rows")
 
     from src.data.clean import clean_dataset
     dataset_1 = clean_dataset(dataset_1, dummy=True)  # TODO use proper version
     logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
     # TODO save cleaned dataset
+
+    if DEVELOP_MODE:
+        dataset_1 = dataset_1.shuffle(seed=42).select(range(1000))
+        logger.debug(f"Subsampled data to {len(dataset_1)} rows")
 
     # Process data
     from src.models.language_model import LanguageModel, GloveLanguageModel
