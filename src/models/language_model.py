@@ -63,7 +63,7 @@ class GloveLanguageModel(LanguageModel):
 
 # ---------------------Transformers---------------------
 
-class BERTLanguageModel:
+class BERTLanguageModel(LanguageModel):
     def __init__(self, model_name='bert-base-uncased', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -83,7 +83,7 @@ class BERTLanguageModel:
         return encodings
 
 
-class GPT2LanguageModel:
+class GPT2LanguageModel(LanguageModel):
     def __init__(self, model_name='gpt2', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -109,7 +109,7 @@ class GPT2LanguageModel:
         return encodings
 
 
-class LLaMALanguageModel:
+class LLaMALanguageModel(LanguageModel):
     def __init__(self, model_name='meta-llama/Llama-2-7b-hf', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -134,7 +134,7 @@ class LLaMALanguageModel:
         return encodings
 
 
-class RoBERTaLanguageModel:
+class RoBERTaLanguageModel(LanguageModel):
     def __init__(self, model_name='roberta-base', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -154,7 +154,7 @@ class RoBERTaLanguageModel:
         return encodings
 
 
-class ELECTRALanguageModel:
+class ELECTRALanguageModel(LanguageModel):
     def __init__(self, model_name='google/electra-base-discriminator', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -174,7 +174,7 @@ class ELECTRALanguageModel:
         return encodings
 
 
-class T5LanguageModel:
+class T5LanguageModel(LanguageModel):
     def __init__(self, model_name='t5-base', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -199,7 +199,7 @@ class T5LanguageModel:
         return encodings
 
 
-class XLNetLanguageModel:
+class XLNetLanguageModel(LanguageModel):
     def __init__(self, model_name='xlnet-base-cased', device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
