@@ -12,7 +12,7 @@ def evaluate(truth: GroupsDataset, predicted: SentimentData):
         logger.warning("Consider moving to polars as pandas might be slow")
 
     df = truth.to_pandas()
-    df["error"] = (df["label"] - predicted)
+    df["error"] = -1 * (df["label"] - predicted)  # flip sign
     df = df.groupby("group")
     mean = df['error'].mean()
     mean.name = "Mean error"
