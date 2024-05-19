@@ -1,5 +1,3 @@
-from typing import List, Tuple, Dict
-
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -50,7 +48,6 @@ def main():
     # adjectives: Tuple[List[str], List[str], List[str]] = IOHandler.load_dummy_adjectives()
     # dummy_generated = generate(templates, groups, adjectives)
     # dataset_2 = dummy_generated
-
     dataset_2 = IOHandler.load_labdet_test()
 
     logger.info(f"Generated {len(dataset_2)} sentences")
