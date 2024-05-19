@@ -64,7 +64,9 @@ class GloveLanguageModel(LanguageModel):
 # ---------------------Transformers---------------------
 
 class BERTLanguageModel:
-    def __init__(self, model_name='bert-base-uncased', device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='bert-base-uncased', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = BertTokenizer.from_pretrained(model_name)
         self.model = BertModel.from_pretrained(model_name).to(self.device)
@@ -82,7 +84,9 @@ class BERTLanguageModel:
 
 
 class GPT2LanguageModel:
-    def __init__(self, model_name='gpt2', device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='gpt2', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 
@@ -106,7 +110,9 @@ class GPT2LanguageModel:
 
 
 class LLaMALanguageModel:
-    def __init__(self, model_name='meta-llama/Llama-2-7b-hf', device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='meta-llama/Llama-2-7b-hf', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = LlamaTokenizer.from_pretrained(model_name)
         self.model = LlamaForCausalLM.from_pretrained(model_name).to(self.device)
@@ -129,7 +135,9 @@ class LLaMALanguageModel:
 
 
 class RoBERTaLanguageModel:
-    def __init__(self, model_name='roberta-base', device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='roberta-base', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = RobertaTokenizer.from_pretrained(model_name)
         self.model = RobertaModel.from_pretrained(model_name).to(self.device)
@@ -147,8 +155,9 @@ class RoBERTaLanguageModel:
 
 
 class ELECTRALanguageModel:
-    def __init__(self, model_name='google/electra-base-discriminator',
-                 device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='google/electra-base-discriminator', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = ElectraTokenizer.from_pretrained(model_name)
         self.model = ElectraModel.from_pretrained(model_name).to(self.device)
@@ -166,7 +175,9 @@ class ELECTRALanguageModel:
 
 
 class T5LanguageModel:
-    def __init__(self, model_name='t5-base', device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='t5-base', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = T5Tokenizer.from_pretrained(model_name)
         self.model = T5Model.from_pretrained(model_name).to(self.device)
@@ -189,7 +200,9 @@ class T5LanguageModel:
 
 
 class XLNetLanguageModel:
-    def __init__(self, model_name='xlnet-base-cased', device='cuda' if torch.cuda.is_available() else 'cpu'):
+    def __init__(self, model_name='xlnet-base-cased', device=None):
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = XLNetTokenizer.from_pretrained(model_name)
         self.model = XLNetModel.from_pretrained(model_name).to(self.device)
