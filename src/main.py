@@ -38,8 +38,8 @@ def main():
         logger.debug(f"Subsampled data to {len(dataset_1)} rows")
 
     # Process data
-    from src.models.language_model import LanguageModel, GloveLanguageModel
-    lm: LanguageModel = GloveLanguageModel()
+    from src.models.language_model import LanguageModel, BERTLanguageModel
+    lm: LanguageModel = BERTLanguageModel()
     from src.data.datatypes import EncodingData
     encodings: EncodingData = lm.encode(dataset_1["input"])  # TODO potentially save encodings
 

@@ -105,6 +105,7 @@ class GPT2LanguageModel(TransformerModel):
 
 class LLaMALanguageModel(TransformerModel):
     def __init__(self, model_name='meta-llama/Llama-2-7b-hf', device=None):
+        login()  # login might be needed for tokenizer creation
         super().__init__(model_name, LlamaForCausalLM, LlamaTokenizer, device)
         # Add a padding token if not already present
 
@@ -113,7 +114,6 @@ class LLaMALanguageModel(TransformerModel):
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
 
     def _encode(self, texts):
-        login()
         super()._encode(texts)
 
 

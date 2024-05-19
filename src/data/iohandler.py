@@ -109,7 +109,7 @@ class IOHandler:
 
         dataset = dataset.add_column(name="label",
                                      column=[adjective_map[dataset[i]["adj"]] for i in range(len(dataset))])
-        dataset = dataset.add_column(name="subject",
+        dataset = dataset.add_column(name="group",
                                      column=dataset["nationality"])
 
         def nationality_map_func(row):
@@ -117,6 +117,6 @@ class IOHandler:
             return row
 
         dataset = dataset.map(nationality_map_func)
-        dataset = dataset.rename_columns(dict(sentence="input", nationality="group"))
+        dataset = dataset.rename_columns(dict(sentence="input", nationality="subject"))
         # dataset = dataset.filter(lambda row: "mask" not in row["group"])
         return dataset
