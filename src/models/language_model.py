@@ -3,7 +3,10 @@ from enum import Enum
 
 import numpy as np
 from tqdm import tqdm
+import torch
 import transformers
+from huggingface_hub import login
+from transformers import BertTokenizer, BertModel, GPT2Tokenizer, GPT2Model, LlamaTokenizer, LlamaForCausalLM, RobertaTokenizer, RobertaModel, ElectraTokenizer, ElectraModel, T5Tokenizer, T5Model, XLNetTokenizer, XLNetModel
 
 from src.data.datatypes import TextData, EncodingData
 from src.data.download import Downloader
@@ -57,3 +60,133 @@ class GloveLanguageModel(LanguageModel):
             embeddings.append(self.aggregation(text_embedding, axis=0))
         return embeddings
 
+#---------------------Transformers---------------------
+
+class BERTLanguageModel:
+    def __init__(self, model_name='bert-base-uncased', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        self.model = BertModel.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+
+    def _encode(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+class GPT2LanguageModel:
+    def __init__(self, model_name='gpt2', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+        
+        # Add a padding token if not already present
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.add_special_tokens({'pad_token': self.tokenizer.eos_token})
+        
+        self.model = GPT2Model.from_pretrained(model_name).to(self.device)
+        self.model.resize_token_embeddings(len(self.tokenizer))
+        self.model.eval()
+
+    def _encode(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+class LLaMALanguageModel:
+    def __init__(self, model_name='meta-llama/Llama-2-7b-hf', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = LlamaTokenizer.from_pretrained(model_name)
+        self.model = LlamaForCausalLM.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+        
+        # Add a padding token if not already present
+        self.tokenizer.add_special_tokens({"pad_token": "<pad>"})
+        self.model.resize_token_embeddings(len(self.tokenizer))
+        self.model.config.pad_token_id = self.tokenizer.pad_token_id
+
+    def _encode(self, texts):
+        login()
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True).to(self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+class RoBERTaLanguageModel:
+    def __init__(self, model_name='roberta-base', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = RobertaTokenizer.from_pretrained(model_name)
+        self.model = RobertaModel.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+
+    def _encode(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+class ELECTRALanguageModel:
+    def __init__(self, model_name='google/electra-base-discriminator', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = ElectraTokenizer.from_pretrained(model_name)
+        self.model = ElectraModel.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+
+    def _encode(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+class T5LanguageModel:
+    def __init__(self, model_name='t5-base', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = T5Tokenizer.from_pretrained(model_name)
+        self.model = T5Model.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+
+    def _encode(self, texts):
+        encodings = []
+        for text in texts:
+            # Encode input text
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(self.device)
+            # Create decoder input ids
+            decoder_input_ids = self.tokenizer('<pad>', return_tensors='pt').input_ids.to(self.device)
+            # Get model output
+            with torch.no_grad():
+                output = self.model(input_ids=encoded_input.input_ids, decoder_input_ids=decoder_input_ids)
+            # Take the mean of the encoder's last hidden state
+            encodings.append(output.encoder_last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+class XLNetLanguageModel:
+    def __init__(self, model_name='xlnet-base-cased', device='cuda' if torch.cuda.is_available() else 'cpu'):
+        self.device = device
+        self.tokenizer = XLNetTokenizer.from_pretrained(model_name)
+        self.model = XLNetModel.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+
+    def _encode(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
