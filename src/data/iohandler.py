@@ -79,7 +79,7 @@ class IOHandler:
 
         dataset = dataset.filter(lambda row: row["label"] != TWEETEVAL_NEUTRAL_LABEL)
         dataset = dataset.map(_convert_positive_to_one)
-        return dataset.rename_columns(dict(text="input"))
+        return dataset.rename_columns(dict(text="input"))["test"]
 
     @classmethod
     def load_labdet_test(cls) -> ProbeDataset | GroupsDataset:
