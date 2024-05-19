@@ -11,7 +11,7 @@ SentimentData = List[np.ndarray]
 """The abstracted away type we will use as labels for generated encodings, consisting of sentiments"""
 
 EncodingData = List[np.ndarray]
-"""The abstracted away type we will use as input for the probe, consisting of encodings"""
+"""The abstracted away type we will use as input for the probe, consisting of 1D encodings"""
 
 # TODO handle when some data is removed, so maybe use a pd.DataFrame so we can use it's index to connect X and Y
 
