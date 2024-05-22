@@ -93,6 +93,38 @@ class BERTLanguageModel(TransformerModel):
     def __init__(self, model_name='bert-base-uncased', device=None):
         super().__init__(model_name, model_class=BertModel, tokenizer_class=BertTokenizer, device=device)
 
+    def _encode_after_embedding(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                embeddings = self.model.embeddings(encoded_input.input_ids)
+            encodings.append(embeddings.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_middle_layer(self, texts):  # no decoder so middle layer is accessed
+        encodings = []
+        middle_layer = len(self.model.encoder.layer) // 2
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input, output_hidden_states=True)
+                hidden_states = output.hidden_states[middle_layer]
+            encodings.append(hidden_states.mean(dim=1).cpu().numpy())
+        return encodings
+
 
 class GPT2LanguageModel(TransformerModel):
     def __init__(self, model_name='gpt2', device=None):
@@ -101,6 +133,38 @@ class GPT2LanguageModel(TransformerModel):
         if self.tokenizer.pad_token is None:
             self.tokenizer.add_special_tokens({'pad_token': self.tokenizer.eos_token})
         self.model.resize_token_embeddings(len(self.tokenizer))
+
+    def _encode_after_embedding(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                embeddings = self.model.wte(encoded_input.input_ids)
+            encodings.append(embeddings.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_middle_layer(self, texts):  # no decoder so middle layer is accessed
+        encodings = []
+        middle_layer = len(self.model.h) // 2
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input, output_hidden_states=True)
+                hidden_states = output.hidden_states[middle_layer]
+            encodings.append(hidden_states.mean(dim=1).cpu().numpy())
+        return encodings
 
 
 class LLaMALanguageModel(TransformerModel):
@@ -113,32 +177,183 @@ class LLaMALanguageModel(TransformerModel):
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
 
-    def _encode(self, texts):
-        super()._encode(texts)
+    def _encode_after_embedding(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True).to(self.device)
+            with torch.no_grad():
+                embeddings = self.model.model.embed_tokens(encoded_input.input_ids)
+            encodings.append(embeddings.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True).to(self.device)
+            with torch.no_grad():
+                output = self.model.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_middle_layer(self, texts):  # no decoder so middle layer is accessed
+        encodings = []
+        middle_layer = len(self.model.model.layers) // 2
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True).to(self.device)
+            with torch.no_grad():
+                output = self.model.model(**encoded_input, output_hidden_states=True)
+                hidden_states = output.hidden_states[middle_layer]
+            encodings.append(hidden_states.mean(dim=1).cpu().numpy())
+        return encodings
 
 
 class RoBERTaLanguageModel(TransformerModel):
     def __init__(self, model_name='roberta-base', device=None):
         super().__init__(model_name, model_class=RobertaModel, tokenizer_class=RobertaTokenizer, device=device)
 
+    def _encode_after_embedding(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                embeddings = self.model.embeddings(encoded_input.input_ids)
+            encodings.append(embeddings.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_middle_layer(self, texts):  # no decoder
+        encodings = []
+        middle_layer = len(self.model.encoder.layer) // 2
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input, output_hidden_states=True)
+                hidden_states = output.hidden_states[middle_layer]
+            encodings.append(hidden_states.mean(dim=1).cpu().numpy())
+        return encodings
+
 
 class ELECTRALanguageModel(TransformerModel):
     def __init__(self, model_name='google/electra-base-discriminator', device=None):
         super().__init__(model_name, ElectraModel, ElectraTokenizer, device)
+
+    def _encode_after_embedding(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                embeddings = self.model.embeddings(encoded_input.input_ids)
+            encodings.append(embeddings.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_middle_layer(self, texts):  # no decoder so middle layer is accessed
+        encodings = []
+        middle_layer = len(self.model.encoder.layer) // 2
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input, output_hidden_states=True)
+                hidden_states = output.hidden_states[middle_layer]
+            encodings.append(hidden_states.mean(dim=1).cpu().numpy())
+        return encodings
 
 
 class T5LanguageModel(TransformerModel):
     def __init__(self, model_name='t5-base', device=None):
         super().__init__(model_name, model_class=T5Model, tokenizer_class=T5Tokenizer, device=device)
 
-    def _create_model_inputs(self, text: str) -> dict:
-        encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
-            self.device)
-        # Create decoder input ids
-        decoder_input_ids = self.tokenizer('<pad>', return_tensors='pt').input_ids.to(self.device)
-        return dict(input_ids=encoded_input.input_ids, decoder_input_ids=decoder_input_ids)
+    def _encode_first_encoder_layer(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model.encoder(input_ids=encoded_input.input_ids, output_hidden_states=True)
+                first_encoder_layer = output.hidden_states[1]  # The first hidden state after the embedding layer
+            encodings.append(first_encoder_layer.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_first_decoder_layer(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            decoder_input_ids = self.tokenizer('<pad>', return_tensors='pt').input_ids.to(self.device)
+            with torch.no_grad():
+                output = self.model(input_ids=encoded_input.input_ids, decoder_input_ids=decoder_input_ids,
+                                    output_hidden_states=True)
+                first_decoder_layer = output.decoder_hidden_states[
+                    1]  # The first hidden state after the embedding layer
+            encodings.append(first_decoder_layer.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            decoder_input_ids = self.tokenizer('<pad>', return_tensors='pt').input_ids.to(self.device)
+            with torch.no_grad():
+                output = self.model(input_ids=encoded_input.input_ids, decoder_input_ids=decoder_input_ids)
+            encodings.append(output.encoder_last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
 
 
 class XLNetLanguageModel(TransformerModel):
     def __init__(self, model_name='xlnet-base-cased', device=None):
         super().__init__(model_name, model_class=XLNetModel, tokenizer_class=XLNetTokenizer, device=device)
+
+    def _encode_after_embedding(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                embeddings = self.model.word_embedding(encoded_input.input_ids)
+            encodings.append(embeddings.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _final_representation(self, texts):
+        encodings = []
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input)
+            encodings.append(output.last_hidden_state.mean(dim=1).cpu().numpy())
+        return encodings
+
+    def _encode_middle_layer(self, texts):  # no decoder so middle layer is accessed
+        encodings = []
+        middle_layer = len(self.model.layer) // 2
+        for text in texts:
+            encoded_input = self.tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=512).to(
+                self.device)
+            with torch.no_grad():
+                output = self.model(**encoded_input, output_hidden_states=True)
+                hidden_states = output.hidden_states[middle_layer]
+            encodings.append(hidden_states.mean(dim=1).cpu().numpy())
+        return encodings
