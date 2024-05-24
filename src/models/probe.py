@@ -1,8 +1,8 @@
 import logging
 
-from sklearn.neural_network import MLPRegressor
-from sklearn.svm import SVR
-from sklearn.linear_model import LinearRegression
+from sklearn.neural_network import MLPRegressor, MLPClassifier
+from sklearn.svm import SVR, SVC
+from sklearn.linear_model import LogisticRegression
 from src.data.datatypes import EncodingData, SentimentData, ProbeDataset
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class LinearProbe(SKLearnProbe):
     """A probe performing linear regression"""
 
     def __init__(self):
-        super().__init__(LinearRegression())
+        super().__init__(LogisticRegression())
 
 
 class SVMProbe(SKLearnProbe):
@@ -50,6 +50,7 @@ class SVMProbe(SKLearnProbe):
 
     def __init__(self):
         super().__init__(SVR())
+        # super().__init__(SVC())  # Classification version
 
     def _train(self, dataset: ProbeDataset):
         if len(dataset) > 10_000:
@@ -61,3 +62,4 @@ class MLPProbe(SKLearnProbe):
     """A probe using a Multilayer perceptron with 2 hidden layers and early stopping."""
     def __init__(self):
         super().__init__(MLPRegressor(hidden_layer_sizes=[128, 128], early_stopping=True))
+        # super().__init__(MLPClassifier(hidden_layer_sizes=[128, 128], early_stopping=True))   # Classification version
