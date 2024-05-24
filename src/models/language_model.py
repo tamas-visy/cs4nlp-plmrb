@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Literal
+from typing import Literal, List
 
 import numpy as np
 from tqdm import tqdm
@@ -72,6 +72,7 @@ class TransformerModel(LanguageModel):
         self.tokenizer = tokenizer_class.from_pretrained(model_name)
         self.model = model_class.from_pretrained(model_name).to(self.device)
         self.model.eval()
+        self.batch_size = 16  # about 2-3x speedup compared to no batching or large batches
 
     @property
     def num_encoder_layers(self):
@@ -90,17 +91,19 @@ class TransformerModel(LanguageModel):
             result_type = self.num_encoder_layers // 2
 
         outputs = []
-        # TODO do batching?
-        for text in texts:
-            x = self._create_model_inputs(text)
-            with torch.no_grad():
-                if result_type == "initial":
-                    output = self._get_initial(**x)
-                elif result_type == "final":
-                    output = self._get_final(**x)
-                else:
-                    output = self._get_at(at=result_type, **x)
-            outputs.extend(agg_func(output, dim=1).cpu().numpy().tolist())  # should work with batches
+        with tqdm(total=len(texts)) as bar:
+            for i in range(0, len(texts), self.batch_size):
+                batch_texts = texts[i:i + self.batch_size]
+                x = self._create_model_inputs(batch_texts)
+                with torch.no_grad():
+                    if result_type == "initial":
+                        output = self._get_initial(**x)
+                    elif result_type == "final":
+                        output = self._get_final(**x)
+                    else:
+                        output = self._get_at(at=result_type, **x)
+                outputs.extend(agg_func(output, dim=1).cpu().numpy().tolist())  # should work with batches
+                bar.update(len(output))
         return outputs
 
     def _get_initial(self, **kwargs):
@@ -112,15 +115,16 @@ class TransformerModel(LanguageModel):
     def _get_at(self, at: int, **kwargs):
         return self.model(**kwargs, output_hidden_states=True).hidden_states[at]
 
-    def _create_model_inputs(self, text: str) -> dict:
+    def _create_model_inputs(self, text: str | List[str]) -> dict:
         encoded_input = self.tokenizer(
             text, return_tensors='pt', padding=True, truncation=True, max_length=512
         ).to(self.device)
 
+        # Attention mask is necessary when batch encoding
         # If any model actually uses the attention mask, we can push this down one class
-        if 'attention_mask' in encoded_input.data:
-            assert encoded_input.data['attention_mask'].all()
-            encoded_input.data.pop("attention_mask")
+        # if 'attention_mask' in encoded_input.data:
+        #     assert encoded_input.data['attention_mask'].all()
+        #     encoded_input.data.pop("attention_mask")
         return encoded_input
 
 
