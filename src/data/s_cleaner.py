@@ -9,13 +9,9 @@ nltk.download('maxent_ne_chunker')
 nltk.download('words')
 nltk.download('averaged_perceptron_tagger')
 
-# Word list taken from:
-# https://github.com/gender-bias/gender-bias/tree/master/genderbias: job-posting-specific male and female attributes
-# https://github.com/davidemiceli/gender-detection/: personal names
-# https://github.com/microsoft/responsible-ai-toolbox-genbit/tree/main: gendered professions and adjectives related to cis, non-binary and trans people
-# https://github.com/tolga-b/debiaswe/tree/master: general male and female coded words (implicit gender bias descriptors) and professions
-# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, expand on jobs dataset, replace to neutral counterpart
-# WHAT DOESN'T MAKE SENSE: only ocnsidering adjectives that are present in more than 2 lists - too occlusive
+def read_wordlist(file_path):
+    with open(file_path, 'r') as file:
+        return {word.strip() for word in file}
 
 def read_names(file_path):
     names = set()
@@ -28,23 +24,17 @@ def read_names(file_path):
 
 female_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/female.js")
 male_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/male.js")
-
-def read_wordlist(file_path):
-    with open(file_path, 'r') as file:
-        return {word.strip() for word in file}
-
-female_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female_adjectives.wordlist")
-male_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_adjectives.wordlist")
 female_jobs_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female.txt")
 male_jobs_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male.txt")
+cis = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/cis.txt")
+trans = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/trans.txt")
+non_binary = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/non-binary.txt")
+female_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female_adjectives.wordlist")
+male_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_adjectives.wordlist")
 
 def string_match_filter(text, filters):
-    matches = []
-    for filter_word in filters:
-        pattern = re.compile(r'\b{}\w*\b'.format(re.escape(filter_word)), re.IGNORECASE)
-        if re.search(pattern, text):
-            matches.append(filter_word)
-    return matches
+    pattern = re.compile(r'\b(?:' + '|'.join(re.escape(word) for word in filters) + r')\b', re.IGNORECASE)
+    return re.sub(pattern, '[MASK]', text)
 
 def ner_filter(text):
     tokens = word_tokenize(text)
@@ -53,19 +43,8 @@ def ner_filter(text):
     processed_sentence = []
     for entity in named_entities:
         if isinstance(entity, nltk.tree.Tree):
-            if entity.label() == 'PERSON':
-                processed_sentence.append('[NAME]')
-            else:
                 entity_words = []
                 for word, tag in entity.leaves():
-                    if word.lower() in female_names:
-                        entity_words.append('[FEMALE NAME]')
-                    elif word.lower() in male_names:
-                        entity_words.append('[MALE NAME]')
-                    elif word.lower() in female_jobs_filters:
-                        entity_words.append('[FEMALE JOB]')
-                    elif word.lower() in male_jobs_filters:
-                        entity_words.append('[MALE JOB]')
                     for attribute_filter in female_attributes_filters:
                         pattern = re.compile(r'\b{}\w*\b'.format(re.escape(attribute_filter)), re.IGNORECASE)
                         if re.match(pattern, word):
@@ -86,13 +65,20 @@ def ner_filter(text):
 def process_sentence(sentence):
     processed_sentence = ner_filter(sentence)
     
-    gender_matches = string_match_filter(processed_sentence, female_attributes_filters)
+    gender_matches_attributes = string_match_filter(processed_sentence, set(female_attributes_filters).union(male_attributes_filters))
+    gender_matches_jobs = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters))
+    gender_matches_names = string_match_filter(processed_sentence, set(female_names).union(male_names))
+    gender_matches_orientation = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary))
+
     
     gender_ner_matches = ner_filter(processed_sentence)
 
     if '[NAME]' or '[FEMALE ATTRIBUTES]' or '[MALE ATTRIBUTES]' or '[FEMALE NAME]' or '[MALE NAME]' or '[FEMALE JOB]' or '[MALE JOB]' in processed_sentence:
         #print("Processed sentence:", processed_sentence)
-        print("String matching for gender:", gender_matches)
+        print("String matching for gender attributes:", gender_matches_attributes)
+        print("String matching for gender jobs:", gender_matches_jobs)
+        print("String matching for gender names:", gender_matches_names)
+        print("String matching for gender orientation:", gender_matches_orientation)
         #print("NER for gender:", gender_ner_matches)
         print()
 
