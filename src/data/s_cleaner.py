@@ -1,8 +1,16 @@
+# Word list taken from:
+# https://github.com/gender-bias/gender-bias/tree/master/genderbias: job-posting-specific male and female attributes
+# https://github.com/davidemiceli/gender-detection/: personal names
+# https://github.com/microsoft/responsible-ai-toolbox-genbit/tree/main: gendered professions and adjectives related to cis, non-binary and trans people
+# https://github.com/tolga-b/debiaswe/tree/master: general male and female coded words (implicit gender bias descriptors) and professions
+# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, expand on jobs dataset, replace to neutral counterpart
+
 import json
 import re
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
+from collections import defaultdict
 
 nltk.download('punkt')
 nltk.download('maxent_ne_chunker')
@@ -31,6 +39,8 @@ trans = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/trans.txt")
 non_binary = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/non-binary.txt")
 female_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female_adjectives.wordlist")
 male_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_adjectives.wordlist")
+male_jobs_filters = [word for word in male_jobs_filters if word not in cis and word not in trans and word not in non_binary]
+female_jobs_filters = [word for word in female_jobs_filters if word not in cis and word not in trans and word not in non_binary]
 
 def string_match_filter(text, filters):
     pattern = re.compile(r'\b(?:' + '|'.join(re.escape(word) for word in filters) + r')\b', re.IGNORECASE)
@@ -97,9 +107,28 @@ example_sentences = [
     "She is honest and forthright in her opinions.",
     "He has excellent interpersonal skills, making him a great team player.",
     "The success of the project is due to their interdependence.",
-    "vidya is a kind and compassionate bro."
+    "vidya is a kind and compassionate bro.",
+    "drag queens pay more taxes"
 ]
 
 for sentence in example_sentences:
     print("Processing sentence:", sentence)
     process_sentence(sentence)
+
+def common_words(*lists):
+    word_counts = defaultdict(int)
+    for idx, lst in enumerate(lists):
+        for word in lst:
+            word_counts[word] += 1
+    
+    common_words_lists = {word: [idx for idx, lst in enumerate(lists) if word in lst] for word, count in word_counts.items() if count > 1}
+    return common_words_lists
+
+
+common_words_lists = common_words(female_names, male_names, female_jobs_filters, male_jobs_filters, cis, trans, non_binary, female_attributes_filters, male_attributes_filters)
+
+#for word, lists in common_words_lists.items():
+#    print(f"Word: {word}, Lists: {[idx for idx in lists]}")
+
+
+# CHECK IF FILTERING IS COMPLETE: RUN GENDER_GUESSER
