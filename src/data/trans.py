@@ -2,6 +2,7 @@ import re
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
+import spacy
 
 nltk.download('punkt')
 nltk.download('maxent_ne_chunker')
@@ -28,37 +29,45 @@ def ner_filter(text):
         if isinstance(entity, nltk.tree.Tree):
             if entity.label() == 'PERSON':
                 processed_sentence.append('[NAME]')
-            elif entity.label() == 'GPE':  
-                processed_sentence.append('') 
+            elif entity.label() == 'GPE':
+                processed_sentence.append('')
             else:
                 entity_text = ' '.join(word for word, tag in entity.leaves())
                 if any(keyword in entity_text.lower() for keyword in ['nation', 'country', 'religion', 'religious']):
-                    processed_sentence.append('') 
+                    processed_sentence.append('')
                 else:
                     processed_sentence.extend([word for word, tag in entity])
         else:
             processed_sentence.append(entity[0])
     return ' '.join(processed_sentence)
 
+nlp = spacy.load("en_core_web_sm")
+
+def ner_filter_spacy(text):
+    doc = nlp(text)
+    nationalities = []
+    for ent in doc.ents:
+        if ent.label_ == "NORP":
+            nationalities.append(ent.text)
+        elif ent.label_ == "GPE":
+            if ent.text.istitle():
+                if ent.text.istitle():
+                    nationalities.add(ent.text)
+    return nationalities
 
 def process_sentence(sentence):
     processed_sentence = ner_filter(sentence)
-    # print("Processed sentence:", processed_sentence) # used just for personal name masking checks
-    
     religion_matches = string_match_filter(processed_sentence, religion_filters)
-    race_matches = string_match_filter(processed_sentence, race_filters)
     gender_matches = string_match_filter(processed_sentence, gender_filters)
-
     religion_ner_matches = ner_filter(processed_sentence)
-    race_ner_matches = ner_filter(processed_sentence)
     gender_ner_matches = ner_filter(processed_sentence)
+    nationalities_ner_spacy = ner_filter_spacy(sentence)
 
     print("String matching for religion:", religion_matches)
     print("NER for religion:", religion_ner_matches)
-    print("String matching for race:", race_matches)
-    print("NER for race:", race_ner_matches)
     print("String matching for gender:", gender_matches)
     print("NER for gender:", gender_ner_matches)
+    print("NER for nationalities (using spaCy):", nationalities_ner_spacy)
     print()
 
 example_sentences = [
