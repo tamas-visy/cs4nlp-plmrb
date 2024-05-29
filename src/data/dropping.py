@@ -1,9 +1,11 @@
 # Word list taken from:
 # https://github.com/gender-bias/gender-bias/tree/master/genderbias: job-posting-specific male and female attributes
+# https://github.com/uclanlp/gn_glove/: gendered titles
 # https://github.com/davidemiceli/gender-detection/: personal names
 # https://github.com/microsoft/responsible-ai-toolbox-genbit/tree/main: gendered professions and adjectives related to cis, non-binary and trans people
 # https://github.com/tolga-b/debiaswe/tree/master: general male and female coded words (implicit gender bias descriptors) and professions
-# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, expand on jobs dataset, replace to neutral counterpart
+# https://github.com/amity/gender-neutralize/: gender neutral job counterparts
+# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, mask personal names with gender neutralnames?
 
 import json
 import re
@@ -42,9 +44,9 @@ male_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_
 male_jobs_filters = [word for word in male_jobs_filters if word not in cis and word not in trans and word not in non_binary]
 female_jobs_filters = [word for word in female_jobs_filters if word not in cis and word not in trans and word not in non_binary]
 
-def string_match_filter(text, filters):
+def string_match_filter(text, filters, mask):
     pattern = re.compile(r'\b(?:' + '|'.join(re.escape(word) for word in filters) + r')\b', re.IGNORECASE)
-    return re.sub(pattern, '[MASK]', text)
+    return re.sub(pattern, '['+mask+']', text)
 
 def ner_filter(text):
     tokens = word_tokenize(text)
@@ -75,10 +77,10 @@ def ner_filter(text):
 def process_sentence(sentence):
     processed_sentence = ner_filter(sentence)
     
-    gender_matches_attributes = string_match_filter(processed_sentence, set(female_attributes_filters).union(male_attributes_filters))
-    gender_matches_jobs = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters))
-    gender_matches_names = string_match_filter(processed_sentence, set(female_names).union(male_names))
-    gender_matches_orientation = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary))
+    gender_matches_attributes = string_match_filter(processed_sentence, set(female_attributes_filters).union(male_attributes_filters), 'GENDERED ATTRIBUTES')
+    gender_matches_jobs = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters), 'GENDERED JOBS')
+    gender_matches_names = string_match_filter(processed_sentence, set(female_names).union(male_names), 'GENDERED NAMES')
+    gender_matches_orientation = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary), 'GENDERED ORIENTATION')
 
     
     gender_ner_matches = ner_filter(processed_sentence)
@@ -107,8 +109,8 @@ example_sentences = [
     "She is honest and forthright in her opinions.",
     "He has excellent interpersonal skills, making him a great team player.",
     "The success of the project is due to their interdependence.",
-    "vidya is a kind and compassionate bro.",
-    "drag queens pay more taxes"
+    "vidya is a kind and compassionate waiter.",
+    "drag queens pay more taxes to marco"
 ]
 
 for sentence in example_sentences:
@@ -126,9 +128,3 @@ def common_words(*lists):
 
 
 common_words_lists = common_words(female_names, male_names, female_jobs_filters, male_jobs_filters, cis, trans, non_binary, female_attributes_filters, male_attributes_filters)
-
-#for word, lists in common_words_lists.items():
-#    print(f"Word: {word}, Lists: {[idx for idx in lists]}")
-
-
-# CHECK IF FILTERING IS COMPLETE: RUN GENDER_GUESSER
