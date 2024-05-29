@@ -5,7 +5,7 @@
 # https://github.com/microsoft/responsible-ai-toolbox-genbit/tree/main: gendered professions and adjectives related to cis, non-binary and trans people
 # https://github.com/tolga-b/debiaswe/tree/master: general male and female coded words (implicit gender bias descriptors) and professions
 # https://github.com/amity/gender-neutralize/: gender neutral job counterparts
-# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, mask personal names with gender neutralnames?
+# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, gendered attirbutews to neutral like 'ok'?, mask personal names with gender neutralnames?
 
 import json
 import re
@@ -32,8 +32,24 @@ def read_names(file_path):
                 names.update(matches)
     return [name.lower() for name in names]
 
+
+def common_words(*lists):
+    word_counts = defaultdict(int)
+    for idx, lst in enumerate(lists):
+        for word in lst:
+            word_counts[word] += 1
+    
+    common_words_lists = {word: [idx for idx, lst in enumerate(lists) if word in lst] for word, count in word_counts.items() if count > 1}
+    return common_words_lists
+
+
+common_words_lists = common_words(female_names, male_names, female_jobs_filters, male_jobs_filters, cis, trans, non_binary, female_attributes_filters, male_attributes_filters)
+
+
 female_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/female.js")
 male_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/male.js")
+male_titles = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_word_file.txt")
+female_titles = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female_word_file.txt")
 female_jobs_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female.txt")
 male_jobs_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male.txt")
 cis = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/cis.txt")
@@ -81,18 +97,23 @@ def process_sentence(sentence):
     gender_matches_jobs = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters), 'GENDERED JOBS')
     gender_matches_names = string_match_filter(processed_sentence, set(female_names).union(male_names), 'GENDERED NAMES')
     gender_matches_orientation = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary), 'GENDERED ORIENTATION')
+    gender_matches_titles = string_match_filter(processed_sentence, set(female_titles).union(male_titles), 'GENDERED TITLES')
 
+    processed_sentence = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary), 'GENDERED ORIENTATION')
+    processed_sentence = string_match_filter(processed_sentence, set(female_titles).union(male_titles), 'GENDERED TITLES')
+    processed_sentence = string_match_filter(processed_sentence, set(female_attributes_filters).union(male_attributes_filters), 'GENDERED ATTRIBUTES')
+    processed_sentence = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters), 'GENDERED JOBS')
+    processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names), 'GENDERED NAMES')
     
-    gender_ner_matches = ner_filter(processed_sentence)
+
 
     if '[NAME]' or '[FEMALE ATTRIBUTES]' or '[MALE ATTRIBUTES]' or '[FEMALE NAME]' or '[MALE NAME]' or '[FEMALE JOB]' or '[MALE JOB]' in processed_sentence:
-        #print("Processed sentence:", processed_sentence)
-        print("String matching for gender attributes:", gender_matches_attributes)
-        print("String matching for gender jobs:", gender_matches_jobs)
-        print("String matching for gender names:", gender_matches_names)
-        print("String matching for gender orientation:", gender_matches_orientation)
-        #print("NER for gender:", gender_ner_matches)
-        print()
+        print("Processed sentence:", processed_sentence)
+        #print("String matching for gender attributes:", gender_matches_attributes)
+        #print("String matching for gender jobs:", gender_matches_jobs)
+        #print("String matching for gender names:", gender_matches_names)
+        #print("String matching for gender orientation or pronouns:", gender_matches_orientation)
+        #print("String matching for gender titles:", gender_matches_titles)
 
 example_sentences = [
     "A female transgender person gave a speech.",
@@ -109,22 +130,10 @@ example_sentences = [
     "She is honest and forthright in her opinions.",
     "He has excellent interpersonal skills, making him a great team player.",
     "The success of the project is due to their interdependence.",
-    "vidya is a kind and compassionate waiter.",
+    "annabel is a kind and compassionate waiter.",
     "drag queens pay more taxes to marco"
 ]
 
 for sentence in example_sentences:
     print("Processing sentence:", sentence)
     process_sentence(sentence)
-
-def common_words(*lists):
-    word_counts = defaultdict(int)
-    for idx, lst in enumerate(lists):
-        for word in lst:
-            word_counts[word] += 1
-    
-    common_words_lists = {word: [idx for idx, lst in enumerate(lists) if word in lst] for word, count in word_counts.items() if count > 1}
-    return common_words_lists
-
-
-common_words_lists = common_words(female_names, male_names, female_jobs_filters, male_jobs_filters, cis, trans, non_binary, female_attributes_filters, male_attributes_filters)
