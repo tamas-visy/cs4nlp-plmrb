@@ -167,9 +167,12 @@ class GPT2LanguageModel(TransformerModel):
     def num_encoder_layers(self):
         return len(self.model.h) // 2
 
-    def _get_initial(self, **kwargs):
-        kwargs["input"] = kwargs.pop("input_ids")
-        return self.model.wte(**kwargs)
+    def _get_initial(self, input_ids, attention_mask=None, **kwargs):
+        # Only arg that is accepted
+        if attention_mask is not None:
+            # verify that all values are one in the mask even if we don't use it
+            assert attention_mask.all()
+        return self.model.wte(input=input_ids)
 
     # def _create_model_inputs(self, text: str) -> dict:
     #     encoded_input = super()._create_model_inputs(text)
@@ -230,6 +233,9 @@ class XLNetLanguageModel(TransformerModel):
     def num_encoder_layers(self):
         return len(self.model.layer)
 
-    def _get_initial(self, **kwargs):
+    def _get_initial(self, input_ids, attention_mask=None, **kwargs):
         # Only arg that is accepted
-        return self.model.word_embedding(input=kwargs["input_ids"])
+        if attention_mask is not None:
+            # verify that all values are one in the mask even if we don't use it
+            assert attention_mask.all()
+        return self.model.word_embedding(input=input_ids)

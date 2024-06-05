@@ -57,31 +57,39 @@ def main():
         logger.debug(f"Subsampled dataset #2 to {len(dataset_2)} rows")
     logger.info(f"Generated {len(dataset_2)} sentences")
 
-    from src.models.language_model import TransformerModel, GPT2LanguageModel
+    from typing import List, Type, Literal
+    import pandas as pd
+    from src.models.language_model import TransformerModel, GPT2LanguageModel, BERTLanguageModel
     from src.models.probe import Probe, MLPProbe
-    from typing import List, Type, Dict, Any, Literal
-    from pandas import DataFrame
     import src.process as process
-    results: Dict[Any, DataFrame] = dict()
+    results: List[pd.DataFrame] = []
 
-    # TODO also evaluate some base
+    # TODO also evaluate some baseline
 
     lm_factories: List[Type[TransformerModel]] = [GPT2LanguageModel]
-    result_types: List[int | Literal["initial", "final", "middle"]] = ["initial", "final"]
+    result_types: List[int | Literal["initial", "final", "middle"]] = ["initial", "middle", "final"]
     probe_factory: Type[Probe] = MLPProbe
     for lm_factory in lm_factories:
         for result_type in result_types:
-            results[(lm_factory, result_type)] = process.complete(
-                    lm_factory=lm_factory,
-                    result_type=result_type,
-                    probe_factory=probe_factory,
-                    dataset_1=dataset_1,
-                    dataset_2=dataset_2
-                )
+            result = process.complete(
+                lm_factory=lm_factory,
+                result_type=result_type,
+                probe_factory=probe_factory,
+                dataset_1=dataset_1,
+                dataset_2=dataset_2
+            )
+            result['lm'] = lm_factory.__name__
+            result['result_type'] = result_type
+            result = result.reset_index().set_index(['lm', 'result_type', 'group', 'subject'])
+            results.append(result)
+
+    results: pd.DataFrame = pd.concat(results)
 
     # Evaluate model encodings
     logger.debug(f"Evaluated sentiments")
     logger.info(f"The results are:\n{results}")
+
+    print(results.to_json(indent=4))
 
 
 if __name__ == '__main__':

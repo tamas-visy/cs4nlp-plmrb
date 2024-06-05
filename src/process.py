@@ -18,8 +18,8 @@ def complete(lm_factory: Type[TransformerModel],
              dataset_1: TextDataset,
              dataset_2: EncodingDataset) -> pd.DataFrame:
     # Setup instances used for testing
-    lm = lm_factory()  # noqa  # child classes implement
-    probe = probe_factory()  # noqa  # child classes implement
+    lm = lm_factory()  # noqa  # child classes implement it
+    probe = probe_factory()  # noqa  # child classes implement it
 
     encodings: EncodingData = lm.encode(dataset_1["input"], result_type=result_type)  # TODO potentially save encodings
 
@@ -27,7 +27,7 @@ def complete(lm_factory: Type[TransformerModel],
     # TODO potentially save trained probe
     logger.info(f"Trained probe")
 
-    encodings = lm.encode(dataset_2["input"])  # TODO save LM encodings of templates
+    encodings = lm.encode(dataset_2["input"], result_type=result_type)  # TODO save LM encodings of templates
     output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments
     logger.info(f"Generated predictions")
 
