@@ -2,17 +2,18 @@ from typing import List, Tuple, Dict
 
 from datasets import Dataset
 
-from src.data.datatypes import TextDataset, GroupsDataset
+from src.data.datatypes import TextDataset, GroupedSubjectsDataset
 
 
 def generate(
         templates: List[str],
         groups: Dict[str, List[str]],
         adjectives: Tuple[List[str], List[str], List[str]]
-) -> TextDataset | GroupsDataset:
+) -> TextDataset | GroupedSubjectsDataset:
     """A function that generates sentences and ground truth sentiment values from templates with groups and
     adjectives inserted. Adjectives can be positive, neutral or negative."""
     groups_ = []
+    subjects = []
     texts = []
     sentiments = []
     for template in templates:
@@ -38,5 +39,6 @@ def generate(
                         groups_.append(group_name)
                         texts.append(sample)
                         sentiments.append(gt)
+                        subjects.append(subject)
 
-    return Dataset.from_dict(dict(group=groups_, input=texts, label=sentiments))
+    return Dataset.from_dict(dict(input=texts, label=sentiments, group=groups_, subject=subjects))
