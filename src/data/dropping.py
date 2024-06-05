@@ -1,11 +1,7 @@
-# Word list taken from:
-# https://github.com/gender-bias/gender-bias/tree/master/genderbias: job-posting-specific male and female attributes
-# https://github.com/uclanlp/gn_glove/: gendered titles
-# https://github.com/davidemiceli/gender-detection/: personal names
-# https://github.com/microsoft/responsible-ai-toolbox-genbit/tree/main: gendered professions and adjectives related to cis, non-binary and trans people
-# https://github.com/tolga-b/debiaswe/tree/master: general male and female coded words (implicit gender bias descriptors) and professions
-# https://github.com/amity/gender-neutralize/: gender neutral job counterparts
-# TO DEBUG: superlatives only used for women/men, expand on unnecessarly citing personal infomration or gender references when not required, gendered attirbutews to neutral like 'ok'?, mask personal names with gender neutralnames?
+# TODO DEBUG:
+#   superlatives only used for women/men,
+#   expand on unnecessarily citing personal information or gender references when not required,
+#   gendered attributes to neutral like 'ok'?, mask personal names with gender neutral names?
 
 import json
 import re
@@ -46,8 +42,19 @@ def common_words(*lists):
     return common_words_lists
 
 
-common_words_lists = common_words(female_names, male_names, female_jobs_filters, male_jobs_filters, cis, trans,
-                                  non_binary, female_attributes_filters, male_attributes_filters)
+# Word list taken from:
+# https://github.com/gender-bias/gender-bias/tree/master/genderbias
+#   job-posting-specific male and female attributes
+# https://github.com/uclanlp/gn_glove/
+#   gendered titles
+# https://github.com/davidemiceli/gender-detection/
+#   personal names
+# https://github.com/microsoft/responsible-ai-toolbox-genbit/tree/main
+#   gendered professions and adjectives related to cis, non-binary and trans people
+# https://github.com/tolga-b/debiaswe/tree/master
+#   general male and female coded words (implicit gender bias descriptors) and professions
+# https://github.com/amity/gender-neutralize/
+#   gender-neutral job counterparts
 
 female_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/female.js")
 male_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/male.js")
@@ -64,6 +71,9 @@ male_jobs_filters = [word for word in male_jobs_filters if
                      word not in cis and word not in trans and word not in non_binary]
 female_jobs_filters = [word for word in female_jobs_filters if
                        word not in cis and word not in trans and word not in non_binary]
+
+common_words_lists = common_words(female_names, male_names, female_jobs_filters, male_jobs_filters, cis, trans,
+                                  non_binary, female_attributes_filters, male_attributes_filters)
 
 
 def string_match_filter(text, filters, mask):
@@ -133,25 +143,30 @@ def process_sentence(sentence):
         # print("String matching for gender titles:", gender_matches_titles)
 
 
-example_sentences = [
-    "A female transgender person gave a speech.",
-    "John Smith attended the conference.",
-    "Transgender rights activists protested outside the courthouse.",
-    "The non-binary community celebrated Pride Month with various events.",
-    "She identifies as queer and is an advocate for LGBTQ rights.",
-    "The male participants were enthusiastic about the workshop.",
-    "A transsexual woman shared her story at the event.",
-    "The LGBTQ community held a march in support of equal rights.",
-    "He came out as gay during the meeting.",
-    "Anna is gentle and caring towards others.",
-    "His hardworking nature led to his success in the project.",
-    "She is honest and forthright in her opinions.",
-    "He has excellent interpersonal skills, making him a great team player.",
-    "The success of the project is due to their interdependence.",
-    "annabel is a kind and compassionate waiter.",
-    "drag queens pay more taxes to marco"
-]
+def test():
+    example_sentences = [
+        "A female transgender person gave a speech.",
+        "John Smith attended the conference.",
+        "Transgender rights activists protested outside the courthouse.",
+        "The non-binary community celebrated Pride Month with various events.",
+        "She identifies as queer and is an advocate for LGBTQ rights.",
+        "The male participants were enthusiastic about the workshop.",
+        "A transsexual woman shared her story at the event.",
+        "The LGBTQ community held a march in support of equal rights.",
+        "He came out as gay during the meeting.",
+        "Anna is gentle and caring towards others.",
+        "His hardworking nature led to his success in the project.",
+        "She is honest and forthright in her opinions.",
+        "He has excellent interpersonal skills, making him a great team player.",
+        "The success of the project is due to their interdependence.",
+        "annabel is a kind and compassionate waiter.",
+        "drag queens pay more taxes to marco"
+    ]
 
-for sentence in example_sentences:
-    print("Processing sentence:", sentence)
-    process_sentence(sentence)
+    for sentence in example_sentences:
+        print("Processing sentence:", sentence)
+        process_sentence(sentence)
+
+
+if __name__ == '__main__':
+    test()
