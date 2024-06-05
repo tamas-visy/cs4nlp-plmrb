@@ -3,13 +3,13 @@ import logging
 from sklearn.neural_network import MLPRegressor, MLPClassifier
 from sklearn.svm import SVR, SVC
 from sklearn.linear_model import LogisticRegression
-from src.data.datatypes import EncodingData, SentimentData, ProbeDataset
+from src.data.datatypes import EncodingData, SentimentData, EncodingDataset
 
 logger = logging.getLogger(__name__)
 
 
 class Probe:
-    def train(self, dataset: ProbeDataset):
+    def train(self, dataset: EncodingDataset):
         logger.debug(f"{self.__class__.__name__} is training on {len(dataset)} sentences")
         self._train(dataset)
 
@@ -17,7 +17,7 @@ class Probe:
         logger.debug(f"{self.__class__.__name__} is predicting {len(data)} sentences")
         return self._predict(data)
 
-    def _train(self, dataset: ProbeDataset):
+    def _train(self, dataset: EncodingDataset):
         raise NotImplementedError
 
     def _predict(self, data: EncodingData) -> SentimentData:
@@ -31,7 +31,7 @@ class SKLearnProbe(Probe):
             raise ValueError
         self._model = model
 
-    def _train(self, dataset: ProbeDataset):
+    def _train(self, dataset: EncodingDataset):
         self._model.fit(dataset["input"], dataset["label"])
 
     def _predict(self, data: EncodingData) -> SentimentData:
@@ -52,7 +52,7 @@ class SVMProbe(SKLearnProbe):
         super().__init__(SVR())
         # super().__init__(SVC())  # Classification version
 
-    def _train(self, dataset: ProbeDataset):
+    def _train(self, dataset: EncodingDataset):
         if len(dataset) > 10_000:
             logger.warning(f"{self.__class__.__name__}'s train time is more than quadratic. This could be slow")
         super()._train(dataset)

@@ -16,13 +16,13 @@ EncodingData = List[np.ndarray]
 # TODO handle when some data is removed, so maybe use a pd.DataFrame so we can use it's index to connect X and Y
 
 TextDataset = Dataset
-"""The abstracted away type we get, consisting of encodings and sentiments. Features are input and label"""
+"""The abstracted away type we get, consisting of strings and sentiments. Features are input and label"""
 
 
-ProbeDataset = Dataset
+EncodingDataset = Dataset
 """The abstracted away type we will use as a dataset for training the probe, consisting of encodings and sentiments.
 Features are input and label"""
 
 GroupedSubjectsDataset = Dataset
 """The abstracted away type we will use as a dataset for evaluating the probe, consisting of groups of subjects
- and sentiments. Features are group, subject and label"""
+ and sentiments. Features are group, subject and label. It should be used in combination with an EncodingDataset"""

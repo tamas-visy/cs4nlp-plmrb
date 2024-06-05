@@ -35,26 +35,13 @@ def main():
 
     if DEVELOP_MODE:
         dataset_1 = dataset_1.shuffle(seed=42).select(range(1000))
-        logger.debug(f"Subsampled data to {len(dataset_1)} rows")
-
-    # Process data
-    from src.models.language_model import TransformerModel, BERTLanguageModel
-    lm: TransformerModel = BERTLanguageModel()
-    from src.data.datatypes import EncodingData
-    encodings: EncodingData = lm.encode(dataset_1["input"])  # TODO potentially save encodings
-
-    # Train probe on encodings of LM
-    from src.models.probe import Probe, MLPProbe
-    from datasets import Dataset
-    probe: Probe = MLPProbe()
-    probe.train(dataset=Dataset.from_dict(dict(input=encodings, label=dataset_1["label"])))
-    # TODO potentially save trained probe
-    logger.info(f"Trained probe")
+        logger.debug(f"Subsampled dataset #1 to {len(dataset_1)} rows")
 
     # Evaluate encodings of LM using the probe
+    from datasets import Dataset
     dataset_2: Dataset
     if DEVELOP_MODE:
-        # We have a good expectation of how these subjects should be ordered
+        # We have a good expectation of how these subjects should be ordered,
         #   so we evaluate them when in DEVELOP_MODE
         from src.data.generate import generate
         templates = IOHandler.load_dummy_templates()
@@ -67,16 +54,32 @@ def main():
 
     if DEVELOP_MODE:
         dataset_2 = dataset_2.shuffle(seed=42).select(range(100))
-        logger.debug(f"Subsampled data to {len(dataset_2)} rows")
-
+        logger.debug(f"Subsampled dataset #2 to {len(dataset_2)} rows")
     logger.info(f"Generated {len(dataset_2)} sentences")
-    encodings = lm.encode(dataset_2["input"])  # TODO save LM encodings of templates
-    output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments
-    logger.info(f"Generated predictions")
+
+    from src.models.language_model import TransformerModel, GPT2LanguageModel
+    from src.models.probe import Probe, MLPProbe
+    from typing import List, Type, Dict, Any, Literal
+    from pandas import DataFrame
+    import src.process as process
+    results: Dict[Any, DataFrame] = dict()
+
+    # TODO also evaluate some base
+
+    lm_factories: List[Type[TransformerModel]] = [GPT2LanguageModel]
+    result_types: List[int | Literal["initial", "final", "middle"]] = ["initial", "final"]
+    probe_factory: Type[Probe] = MLPProbe
+    for lm_factory in lm_factories:
+        for result_type in result_types:
+            results[(lm_factory, result_type)] = process.complete(
+                    lm_factory=lm_factory,
+                    result_type=result_type,
+                    probe_factory=probe_factory,
+                    dataset_1=dataset_1,
+                    dataset_2=dataset_2
+                )
 
     # Evaluate model encodings
-    from src.models.evaluate import evaluate
-    results = evaluate(dataset_2, output_sentiments)
     logger.debug(f"Evaluated sentiments")
     logger.info(f"The results are:\n{results}")
 

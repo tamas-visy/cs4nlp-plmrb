@@ -65,14 +65,17 @@ class GloveLanguageModel(LanguageModel):
 # ---------------------Transformers---------------------
 
 class TransformerModel(LanguageModel):
-    def __init__(self, model_name, model_class, tokenizer_class, device=None):
+    def __init__(self, model_name, model_class, tokenizer_class, device=None, batch_size: int | None = 16):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.tokenizer = tokenizer_class.from_pretrained(model_name)
         self.model = model_class.from_pretrained(model_name).to(self.device)
         self.model.eval()
-        self.batch_size = 16  # about 2-3x speedup compared to no batching or large batches
+        self.batch_size = batch_size  # about 2-3x speedup compared to no batching or large batches
+
+        self._get_initial_can_be_batched = True
+        """A flag to disable batch inference due to 'attention_mask' not being supported in get_initial"""
 
     @property
     def num_encoder_layers(self):
@@ -92,8 +95,13 @@ class TransformerModel(LanguageModel):
 
         outputs = []
         with tqdm(total=len(texts)) as bar:
-            for i in range(0, len(texts), self.batch_size):
-                batch_texts = texts[i:i + self.batch_size]
+            batch_size = self.batch_size if self.batch_size is not None else 1
+            if result_type == "initial" and not self._get_initial_can_be_batched:
+                logger.warning(f"Force disabling batching for result type 'initial' of {self.__class__.__name__}")
+                batch_size = 1
+
+            for i in range(0, len(texts), batch_size):
+                batch_texts = texts[i:i + batch_size]
                 x = self._create_model_inputs(batch_texts)
                 with torch.no_grad():
                     if result_type == "initial":
@@ -107,7 +115,19 @@ class TransformerModel(LanguageModel):
         return outputs
 
     def _get_initial(self, **kwargs):
-        return self.model.embeddings(**kwargs)
+        if not self._get_initial_can_be_batched:
+            # If not supported, we have to manually remove the attention mask
+            if 'attention_mask' in kwargs:
+                # verify that all values are one in the mask before removing
+                assert kwargs['attention_mask'].all()
+                kwargs.pop("attention_mask")
+        try:
+            return self.model.embeddings(**kwargs)
+        except TypeError as te:
+            if "got an unexpected keyword argument 'attention_mask'" in str(te):
+                raise NotImplementedError(
+                    f"Batch inference with {self.__class__.__name__} is not supported for _get_initial, "
+                    + "set _get_initial_can_be_batched to False")
 
     def _get_final(self, **kwargs):
         return self.model(**kwargs).last_hidden_state
@@ -131,6 +151,7 @@ class TransformerModel(LanguageModel):
 class BERTLanguageModel(TransformerModel):
     def __init__(self, model_name='bert-base-uncased', device=None):
         super().__init__(model_name, model_class=BertModel, tokenizer_class=BertTokenizer, device=device)
+        self._get_initial_can_be_batched = False
 
 
 class GPT2LanguageModel(TransformerModel):
@@ -140,6 +161,7 @@ class GPT2LanguageModel(TransformerModel):
         if self.tokenizer.pad_token is None:
             self.tokenizer.add_special_tokens({'pad_token': self.tokenizer.eos_token})
         self.model.resize_token_embeddings(len(self.tokenizer))
+        self._get_initial_can_be_batched = False
 
     @property
     def num_encoder_layers(self):
@@ -164,16 +186,19 @@ class LLaMALanguageModel(TransformerModel):
         self.tokenizer.add_special_tokens({"pad_token": "<pad>"})  # why not self.tokenizer.eos_token?
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
+        # self._get_initial_can_be_batched = False  # TODO check if necessary
 
 
 class RoBERTaLanguageModel(TransformerModel):
     def __init__(self, model_name='roberta-base', device=None):
         super().__init__(model_name, model_class=RobertaModel, tokenizer_class=RobertaTokenizer, device=device)
+        self._get_initial_can_be_batched = False
 
 
 class ELECTRALanguageModel(TransformerModel):
     def __init__(self, model_name='google/electra-base-discriminator', device=None):
         super().__init__(model_name, ElectraModel, ElectraTokenizer, device)
+        self._get_initial_can_be_batched = False
 
 
 class T5LanguageModel(TransformerModel):
