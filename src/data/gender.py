@@ -31,17 +31,22 @@ def detect_gender_bias(text):
     return gender_bias_phrases, entities
 
 
-text = """
-Mr. John Doe is the CEO of the company. He has been leading the company towards success.
-Mrs. Jane Smith, on the other hand, takes care of the office administration and her efforts are often overlooked.
-"""
+def test():
+    text = """
+        Mr. John Doe is the CEO of the company. He has been leading the company towards success.
+        Mrs. Jane Smith, on the other hand, takes care of the office administration and her efforts are often overlooked.
+        """
 
-gender_bias_phrases, entities = detect_gender_bias(text)
+    gender_bias_phrases, entities = detect_gender_bias(text)
 
-print("Detected gender bias phrases:")
-for phrase in gender_bias_phrases:
-    print(phrase)
+    print("Detected gender bias phrases:")
+    for phrase in gender_bias_phrases:
+        print(phrase)
 
-print("\nNamed Entities:")
-for entity, occurrences in entities.items():
-    print(f"{entity}: {[ent.label_ for ent in occurrences]}")
+    print("\nNamed Entities:")
+    for entity, occurrences in entities.items():
+        print(f"{entity}: {[ent.label_ for ent in occurrences]}")
+
+
+if __name__ == "__main__":
+    test()
