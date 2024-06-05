@@ -6,6 +6,7 @@ nlp = spacy.load("en_core_web_sm")
 male_words = ["he", "him", "his", "himself", "Mr."]
 female_words = ["she", "her", "hers", "herself", "Ms.", "Mrs."]
 
+
 def detect_gender_bias(text):
     doc = nlp(text)
     gender_bias_phrases = []
@@ -28,6 +29,7 @@ def detect_gender_bias(text):
                     break
 
     return gender_bias_phrases, entities
+
 
 text = """
 Mr. John Doe is the CEO of the company. He has been leading the company towards success.
