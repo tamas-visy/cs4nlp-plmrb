@@ -11,7 +11,7 @@ SentimentData = List[np.ndarray]
 """The abstracted away type we will use as labels for generated encodings, consisting of sentiments"""
 
 EncodingData = List[np.ndarray]
-"""The abstracted away type we will use as input for the probe, consisting of encodings"""
+"""The abstracted away type we will use as input for the probe, consisting of 1D encodings"""
 
 # TODO handle when some data is removed, so maybe use a pd.DataFrame so we can use it's index to connect X and Y
 
@@ -23,6 +23,6 @@ ProbeDataset = Dataset
 """The abstracted away type we will use as a dataset for training the probe, consisting of encodings and sentiments.
 Features are input and label"""
 
-GroupsDataset = Dataset
+GroupedSubjectsDataset = Dataset
 """The abstracted away type we will use as a dataset for evaluating the probe, consisting of groups of subjects
- and sentiments. Features are group and label"""
+ and sentiments. Features are group, subject and label"""
