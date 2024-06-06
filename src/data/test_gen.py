@@ -5,6 +5,8 @@ import pandas as pd
 # Load names data
 names_data = pd.read_csv(
     'C:\\Vansh Personal\\ETHZ\\Courses\\CS4NLP\\Project\\cs4nlp-plmrb\\data\\raw\\name-gender\\name_gender_dataset.csv')
+mask = "[MASK]"
+na = "N/A"
 
 # Define sentiment words (20 each)
 positive_words = [
@@ -131,42 +133,43 @@ def generate_dataset(num_samples, names_data):
             if template_id in [1, 2, 3, 4]:
                 for word in positive_words:
                     data.append(
-                        (templates[template_id-1].format(name, word), 1, gender, template_id))
+                        (templates[template_id-1].format(name, word), na, 1, gender, template_id))
                 for word in negative_words:
                     data.append(
-                        (templates[template_id-1].format(name, word), -1, gender, template_id))
+                        (templates[template_id-1].format(name, word), na, -1, gender, template_id))
                 for word in neutral_words:
                     data.append(
-                        (templates[template_id-1].format(name, word), 0, gender, template_id))
+                        (templates[template_id-1].format(name, word), templates[template_id-1].format(mask, word), 0, gender, template_id))
             elif template_id in [5]:
                 for situation_word in positive_situation_words:
                     article = 'an' if situation_word[0].lower(
                     ) in ['a', 'e', 'i', 'o', 'u'] else 'a'
                     data.append((templates[template_id-1].format(name, pronoun,
-                                article, situation_word), 1, gender, template_id))
+                                article, situation_word), na, 1, gender, template_id))
                 for situation_word in negative_situation_words:
                     article = 'an' if situation_word[0].lower(
                     ) in ['a', 'e', 'i', 'o', 'u'] else 'a'
                     data.append((templates[template_id-1].format(name, pronoun,
-                                article, situation_word), -1, gender, template_id))
+                                article, situation_word), na, -1, gender, template_id))
                 for situation_word in neutral_situation_words:
                     article = 'an' if situation_word[0].lower(
                     ) in ['a', 'e', 'i', 'o', 'u'] else 'a'
                     data.append((templates[template_id-1].format(name, pronoun,
+                                article, situation_word), templates[template_id-1].format(mask, pronoun,
                                 article, situation_word), 0, gender, template_id))
             elif template_id in [6, 7]:
                 for situation_word in positive_situation_words:
                     data.append(
-                        (templates[template_id-1].format(name, situation_word), 1, gender, template_id))
+                        (templates[template_id-1].format(name, situation_word), na, 1, gender, template_id))
                 for situation_word in negative_situation_words:
                     data.append(
-                        (templates[template_id-1].format(name, situation_word), -1, gender, template_id))
+                        (templates[template_id-1].format(name, situation_word), na, -1, gender, template_id))
                 for situation_word in neutral_situation_words:
                     data.append(
-                        (templates[template_id-1].format(name, situation_word), 0, gender, template_id))
+                        (templates[template_id-1].format(name, situation_word), templates[template_id-1].format(mask, situation_word), 0, gender, template_id))
             else:
                 data.append(
-                    (templates[template_id-1].format(name), 0, gender, template_id))
+                    (templates[template_id-1].format(name), templates[template_id-1].format(mask), 0, gender, template_id))
 
     # Generate data for each reference phrase
     for template_id in range(1, 12):
@@ -174,36 +177,36 @@ def generate_dataset(num_samples, names_data):
             for ref_phrase_f, ref_phrase_m in zip(female_references, male_references):
                 for word in positive_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, 1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, 1, 'M', template_id))
                 for word in negative_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), -1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, -1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), -1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, -1, 'M', template_id))
                 for word in neutral_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 0, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), templates[template_id-1].format(mask, word), 0, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 0, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), templates[template_id-1].format(mask, word), 0, 'M', template_id))
         if template_id in [2, 3]:
             for ref_phrase_f, ref_phrase_m in zip(female_references23789, male_references23789):
                 for word in positive_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, 1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, 1, 'M', template_id))
                 for word in negative_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), -1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, -1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), -1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, -1, 'M', template_id))
                 for word in neutral_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 0, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), templates[template_id-1].format(mask, word), 0, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 0, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), templates[template_id-1].format(mask, word), 0, 'M', template_id))
 
         if template_id in [5]:
 
@@ -212,72 +215,74 @@ def generate_dataset(num_samples, names_data):
                     article = 'an' if word[0].lower(
                     ) in ['a', 'e', 'i', 'o', 'u'] else 'a'
                     data.append((templates[template_id-1].format(ref_phrase_f,
-                                'herself', article, word), 1, 'F', template_id))
+                                'herself', article, word), na, 1, 'F', template_id))
                     data.append((templates[template_id-1].format(ref_phrase_m,
-                                'himself', article, word), 1, 'M', template_id))
+                                'himself', article, word), na, 1, 'M', template_id))
                 for word in negative_situation_words:
                     article = 'an' if word[0].lower(
                     ) in ['a', 'e', 'i', 'o', 'u'] else 'a'
                     data.append((templates[template_id-1].format(ref_phrase_f,
-                                'herself', article, word), -1, 'F', template_id))
+                                'herself', article, word), na, -1, 'F', template_id))
                     data.append((templates[template_id-1].format(ref_phrase_m,
-                                'himself', article, word), -1, 'M', template_id))
+                                'himself', article, word), na, -1, 'M', template_id))
                 for word in neutral_situation_words:
                     article = 'an' if word[0].lower(
                     ) in ['a', 'e', 'i', 'o', 'u'] else 'a'
                     data.append((templates[template_id-1].format(ref_phrase_f,
-                                'herself', article, word), 0, 'F', template_id))
+                                'herself', article, word), templates[template_id-1].format(mask,
+                                mask, article, word), 0, 'F', template_id))
                     data.append((templates[template_id-1].format(ref_phrase_m,
-                                'himself', article, word), 0, 'M', template_id))
+                                'himself', article, word), templates[template_id-1].format(mask,
+                                mask, article, word), 0, 'M', template_id))
         if template_id in [6]:
             for ref_phrase_f, ref_phrase_m in zip(female_references, male_references):
                 for word in positive_situation_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, 1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, 1, 'M', template_id))
                 for word in negative_situation_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), -1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, -1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), -1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, -1, 'M', template_id))
                 for word in neutral_situation_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 0, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), templates[template_id-1].format(mask, word), 0, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 0, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), templates[template_id-1].format(mask, word), 0, 'M', template_id))
         if template_id in [7]:
             for ref_phrase_f, ref_phrase_m in zip(female_references23789, male_references23789):
                 for word in positive_situation_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, 1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, 1, 'M', template_id))
                 for word in negative_situation_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), -1, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), na, -1, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), -1, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), na, -1, 'M', template_id))
                 for word in neutral_situation_words:
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_f, word), 0, 'F', template_id))
+                        (templates[template_id-1].format(ref_phrase_f, word), templates[template_id-1].format(mask, word), 0, 'F', template_id))
                     data.append(
-                        (templates[template_id-1].format(ref_phrase_m, word), 0, 'M', template_id))
+                        (templates[template_id-1].format(ref_phrase_m, word), templates[template_id-1].format(mask, word), 0, 'M', template_id))
 
         if template_id in [8, 9]:
             for ref_phrase_f, ref_phrase_m in zip(female_references23789, male_references23789):
                 data.append(
-                    (templates[template_id-1].format(ref_phrase_f), 0, 'F', template_id))
+                    (templates[template_id-1].format(ref_phrase_f), templates[template_id-1].format(mask), 0, 'F', template_id))
                 data.append(
-                    (templates[template_id-1].format(ref_phrase_m), 0, 'M', template_id))
+                    (templates[template_id-1].format(ref_phrase_m), templates[template_id-1].format(mask), 0, 'M', template_id))
         if template_id in [10, 11]:
             for ref_phrase_f, ref_phrase_m in zip(female_references, male_references):
                 data.append(
-                    (templates[template_id-1].format(ref_phrase_f), 0, 'F', template_id))
+                    (templates[template_id-1].format(ref_phrase_f), templates[template_id-1].format(mask), 0, 'F', template_id))
                 data.append(
-                    (templates[template_id-1].format(ref_phrase_m), 0, 'M', template_id))
+                    (templates[template_id-1].format(ref_phrase_m), templates[template_id-1].format(mask), 0, 'M', template_id))
 
-    return pd.DataFrame(data, columns=['Sentence', 'Sentiment', 'Gender', 'Template ID'])
+    return pd.DataFrame(data, columns=['Sentence', 'SentenceWithMask', 'TrueSentiment', 'Gender', 'TemplateID'])
 
 
 # Generate dataset
@@ -286,7 +291,7 @@ dataset = generate_dataset(num_samples, names_data)
 
 # Save dataset to CSV
 dataset.to_csv(
-    'C:\\Vansh Personal\\ETHZ\\Courses\\CS4NLP\\Project\\cs4nlp-plmrb\\data\\processed\\generated_dataset.csv', index=False)
+    'C:\\Vansh Personal\\ETHZ\\Courses\\CS4NLP\\Project\\cs4nlp-plmrb\\data\\processed\\generated_eval_dataset_with_mask.csv', index=False)
 
 
 # Expected dataset size:
