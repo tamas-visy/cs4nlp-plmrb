@@ -66,21 +66,24 @@ def main():
 
     # TODO also evaluate some baseline
 
-    lm_factories: List[Type[TransformerModel]] = [GPT2LanguageModel]
-    result_types: List[int | Literal["initial", "final", "middle"]] = ["initial", "middle", "final"]
+    lms: List[TransformerModel] = [GPT2LanguageModel()]
     probe_factory: Type[Probe] = MLPProbe
-    for lm_factory in lm_factories:
+    for lm in lms:
+        result_types: List[int | Literal["initial", "final", "middle"]] = [
+            "initial",
+            *list(range(lm.num_encoder_layers + 1)),
+            "final"]
         for result_type in result_types:
             result = process.complete(
-                lm_factory=lm_factory,
+                lm=lm,
                 result_type=result_type,
                 probe_factory=probe_factory,
                 dataset_1=dataset_1,
                 dataset_2=dataset_2
             )
-            result['lm'] = lm_factory.__name__
+            result['value'] = lm.__class__.__name__
             result['result_type'] = result_type
-            result = result.reset_index().set_index(['lm', 'result_type', 'group', 'subject'])
+            result = result.reset_index().set_index(['value', 'result_type', 'group', 'subject'])
             results.append(result)
 
     results: pd.DataFrame = pd.concat(results)
@@ -89,7 +92,8 @@ def main():
     logger.debug(f"Evaluated sentiments")
     logger.info(f"The results are:\n{results}")
 
-    print(results.to_json(indent=4))
+    with open("out/results.json", "w") as f:
+        results.to_json(f, indent=4)
 
 
 if __name__ == '__main__':
