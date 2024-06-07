@@ -59,7 +59,7 @@ def main():
 
     from typing import List, Type, Literal
     import pandas as pd
-    from src.models.language_model import TransformerModel, GPT2LanguageModel, BERTLanguageModel
+    from src.models.language_model import TransformerModel, GPT2LanguageModel
     from src.models.probe import Probe, MLPProbe
     import src.process as process
     results: List[pd.DataFrame] = []
