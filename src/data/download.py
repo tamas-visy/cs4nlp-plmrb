@@ -74,7 +74,8 @@ class Downloader:
     @classmethod
     def download_labdet(cls):
         """Downloads the data used in LABDet."""
-        raise NotImplementedError
+        cls._download_and_extract_zip("LABDet",
+                                      url="https://github.com/akoksal/LABDet/archive/refs/heads/main.zip")
 
     @classmethod
     def create_dummy(cls):
@@ -105,9 +106,9 @@ class Downloader:
         df.to_csv(IOHandler.raw_path_to("dummy_templates.csv"))
         # Groups
         data = dict(animals=["cats", "dogs", "Donkey and his magical friends",
-                             "wolves", "sharks"],
-                    people=["my family", "scientists", "US presidents",
-                            "Shrek", "the absolutely worst people you can come up with"])
+                             "a cute tiny little baby doe", "sharks"],
+                    people=["my family", "Nobel Peace price awarded writers and artists", "US presidents",
+                            "Shrek", "an evil dictator"])
         df = pd.DataFrame.from_dict(data)
         # We expect the groups to have same length (for fairness when comparing), so we can save as columns of csv
         df.to_csv(IOHandler.raw_path_to("dummy_groups.csv"))
