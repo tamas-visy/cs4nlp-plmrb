@@ -33,6 +33,11 @@ def main():
     logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
     # TODO save cleaned dataset
 
+    from src.data.dropping import process_sentence
+    dataset_1 = dataset_1.map(lambda example: {"input": process_sentence(example["input"])})
+    logger.info(f"Processed dataset, {len(dataset_1)} rows remaining")
+
+
     if DEVELOP_MODE:
         dataset_1 = dataset_1.shuffle(seed=42).select(range(1000))
         logger.debug(f"Subsampled data to {len(dataset_1)} rows")
@@ -85,6 +90,9 @@ if __name__ == '__main__':
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
     load_dotenv(find_dotenv())
+    import sys
+    import os
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
     from src.utils.logging import setup_logger
 
