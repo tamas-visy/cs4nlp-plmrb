@@ -1,7 +1,5 @@
 # TODO DEBUG:
-#   superlatives only used for women/men,
 #   expand on unnecessarily citing personal information or gender references when not required,
-#   gendered attributes to neutral like 'ok'?, mask personal names with gender neutral names?
 
 import json
 import re
