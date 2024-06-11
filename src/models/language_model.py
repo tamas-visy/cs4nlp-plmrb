@@ -165,7 +165,7 @@ class GPT2LanguageModel(TransformerModel):
 
     @property
     def num_encoder_layers(self):
-        return len(self.model.h) // 2
+        return len(self.model.h)
 
     def _get_initial(self, input_ids, attention_mask=None, **kwargs):
         # Only arg that is accepted

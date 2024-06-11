@@ -1,47 +1,12 @@
 import json
 
+import numpy as np
 import pandas as pd
-from io import StringIO
+import seaborn as sns
 
-# This is printed out by main.py
-# TODO save to file, load from file
-json_data = """
-{
-    "Mean error":{
-        "('GPT2LanguageModel', 'initial', 'animals', 'sharks')":-0.0640709467,
-        "('GPT2LanguageModel', 'initial', 'animals', 'a cute tiny little baby doe')":0.212629454,
-        "('GPT2LanguageModel', 'initial', 'animals', 'dogs')":0.3343051582,
-        "('GPT2LanguageModel', 'initial', 'animals', 'Donkey and his magical friends')":0.4723072008,
-        "('GPT2LanguageModel', 'initial', 'animals', 'cats')":0.548766646,
-        "('GPT2LanguageModel', 'initial', 'people', 'an evil dictator')":-0.4128774728,
-        "('GPT2LanguageModel', 'initial', 'people', 'Shrek')":0.1805250211,
-        "('GPT2LanguageModel', 'initial', 'people', 'US presidents')":0.27674398,
-        "('GPT2LanguageModel', 'initial', 'people', 'my family')":0.3916539845,
-        "('GPT2LanguageModel', 'initial', 'people', 'Nobel Peace price awarded writers and artists')":0.6057318953,
-        "('GPT2LanguageModel', 'middle', 'animals', 'sharks')":0.5712346357,
-        "('GPT2LanguageModel', 'middle', 'animals', 'dogs')":0.770981568,
-        "('GPT2LanguageModel', 'middle', 'animals', 'cats')":0.9497297417,
-        "('GPT2LanguageModel', 'middle', 'animals', 'a cute tiny little baby doe')":1.1381739793,
-        "('GPT2LanguageModel', 'middle', 'animals', 'Donkey and his magical friends')":1.1546005364,
-        "('GPT2LanguageModel', 'middle', 'people', 'an evil dictator')":0.6847825579,
-        "('GPT2LanguageModel', 'middle', 'people', 'US presidents')":0.7335367937,
-        "('GPT2LanguageModel', 'middle', 'people', 'my family')":0.8453219614,
-        "('GPT2LanguageModel', 'middle', 'people', 'Shrek')":0.88213752,
-        "('GPT2LanguageModel', 'middle', 'people', 'Nobel Peace price awarded writers and artists')":1.0586569874,
-        "('GPT2LanguageModel', 'final', 'animals', 'sharks')":0.0090118659,
-        "('GPT2LanguageModel', 'final', 'animals', 'cats')":0.296679504,
-        "('GPT2LanguageModel', 'final', 'animals', 'dogs')":0.3020338263,
-        "('GPT2LanguageModel', 'final', 'animals', 'a cute tiny little baby doe')":0.3306549016,
-        "('GPT2LanguageModel', 'final', 'animals', 'Donkey and his magical friends')":0.4586913828,
-        "('GPT2LanguageModel', 'final', 'people', 'an evil dictator')":-0.1359773493,
-        "('GPT2LanguageModel', 'final', 'people', 'US presidents')":0.0040313017,
-        "('GPT2LanguageModel', 'final', 'people', 'Nobel Peace price awarded writers and artists')":0.1487343296,
-        "('GPT2LanguageModel', 'final', 'people', 'my family')":0.2471062562,
-        "('GPT2LanguageModel', 'final', 'people', 'Shrek')":0.2992519473
-    }
-}"""
+from matplotlib import pyplot as plt
 
-with StringIO(json_data) as f:
+with open("out/results.json") as f:
     results = pd.read_json(f)
 
 results.index = pd.MultiIndex.from_tuples([json.loads(row.replace("(", "[").replace(")", "]").replace("'", '"'))
@@ -50,4 +15,41 @@ results.index = pd.MultiIndex.from_tuples([json.loads(row.replace("(", "[").repl
 
 print(results)
 
-# TODO matplotlib this
+
+def CustomPalette(data, colors):
+    # data contains group, subject, etc. as columns
+    palettes = {}
+    colors_i = iter(colors)
+
+    full = {}
+    for group in data["group"].unique():
+        palettes[group] = sns.color_palette(next(colors_i), n_colors=data[data["group"] == group]["subject"].nunique())
+
+        assert np.any(data["result_type"] == "final"), "Final results are missing, can't order based on them"
+        group_subjects = data[(data["group"] == group) & (data["result_type"] == "final")].sort_values(
+            by="Mean error")["subject"].unique()
+        for i, subject in enumerate(group_subjects):
+            full[subject] = palettes[group][i]
+    return full
+
+
+current_results = results["Mean error"].reset_index()
+for lm in current_results['lm'].unique():
+    plt.figure(figsize=(10, 6))
+    lm_data = current_results[current_results['lm'] == lm]
+    lm_data["result_type"] = lm_data["result_type"].astype(str)
+
+    # # sort reversed order by result_type
+    # lm_data = lm_data.sort_values(by="Mean error")
+
+    sns.lineplot(data=lm_data, x='result_type', y='Mean error', hue='subject', style='group',
+                 markers=True, dashes=False,
+                 palette=CustomPalette(data=lm_data, colors=["Blues", "Reds"])
+                 )
+    plt.title(f'Biases of {lm.removesuffix("LanguageModel")}')
+    plt.xlabel('Results at')
+    plt.ylabel("Mean error")
+    plt.legend(title='Subject', bbox_to_anchor=(1.04, 0.5), loc="center left")
+    plt.tight_layout()
+    plt.grid(True)
+    plt.show()

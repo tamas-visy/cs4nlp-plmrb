@@ -12,13 +12,12 @@ from src.models.probe import Probe
 logger = logging.getLogger(__name__)
 
 
-def complete(lm_factory: Type[TransformerModel],
+def complete(lm: TransformerModel,
              result_type: int | Literal["initial", "final", "middle"],
              probe_factory: Type[Probe],
              dataset_1: TextDataset,
              dataset_2: EncodingDataset) -> pd.DataFrame:
     # Setup instances used for testing
-    lm = lm_factory()  # noqa  # child classes implement it
     probe = probe_factory()  # noqa  # child classes implement it
 
     encodings: EncodingData = lm.encode(dataset_1["input"], result_type=result_type)  # TODO potentially save encodings
