@@ -28,14 +28,14 @@ def main():
          IOHandler.load_tweeteval()])
     logger.info(f"Loaded dataset with {len(dataset_1)} rows")
 
-    from src.data.clean import clean_dataset
-    dataset_1 = clean_dataset(dataset_1, dummy=True)  # TODO use proper version
-    logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
-    # TODO save cleaned dataset
-
     if DEVELOP_MODE:
         dataset_1 = dataset_1.shuffle(seed=42).select(range(1000))
         logger.debug(f"Subsampled dataset #1 to {len(dataset_1)} rows")
+
+    from src.data.clean import clean_dataset
+    dataset_1 = clean_dataset(dataset_1)  # TODO use proper version
+    logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
+    # TODO save cleaned dataset
 
     # Evaluate encodings of LM using the probe
     from datasets import Dataset

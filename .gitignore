@@ -78,6 +78,7 @@ target/
 # exclude contents of subfolders in data from source control but keep folders themselves
 /data/*/*
 !/data/*/.gitkeep
+!/data/raw/dropping
 
 # Mac OS-specific storage files
 .DS_Store

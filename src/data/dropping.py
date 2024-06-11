@@ -10,6 +10,8 @@ from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 from collections import defaultdict
 
+from src.data.iohandler import IOHandler
+
 nltk.download('punkt')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
@@ -56,17 +58,17 @@ def common_words(*lists):
 # https://github.com/amity/gender-neutralize/
 #   gender-neutral job counterparts
 
-female_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/female.js")
-male_names = read_names("/workspaces/cs4nlp-plmrb/data/raw/male.js")
-male_titles = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_word_file.txt")
-female_titles = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female_word_file.txt")
-female_jobs_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female.txt")
-male_jobs_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male.txt")
-cis = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/cis.txt")
-trans = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/trans.txt")
-non_binary = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/non-binary.txt")
-female_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/female_adjectives.wordlist")
-male_attributes_filters = read_wordlist("/workspaces/cs4nlp-plmrb/data/raw/male_adjectives.wordlist")
+female_names = read_names(IOHandler.raw_path_to("dropping/female.js"))
+male_names = read_names(IOHandler.raw_path_to("dropping/male.js"))
+male_titles = read_wordlist(IOHandler.raw_path_to("dropping/male_word_file.txt"))
+female_titles = read_wordlist(IOHandler.raw_path_to("dropping/female_word_file.txt"))
+female_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/female.txt"))
+male_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/male.txt"))
+cis = read_wordlist(IOHandler.raw_path_to("dropping/cis.txt"))
+trans = read_wordlist(IOHandler.raw_path_to("dropping/trans.txt"))
+non_binary = read_wordlist(IOHandler.raw_path_to("dropping/non-binary.txt"))
+female_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/female_adjectives.wordlist"))
+male_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/male_adjectives.wordlist"))
 male_jobs_filters = [word for word in male_jobs_filters if
                      word not in cis and word not in trans and word not in non_binary]
 female_jobs_filters = [word for word in female_jobs_filters if
@@ -108,20 +110,20 @@ def ner_filter(text):
     return ' '.join(processed_sentence)
 
 
-def process_sentence(sentence):
+def process_sentence(sentence: str) -> str:
     processed_sentence = ner_filter(sentence)
 
-    gender_matches_attributes = string_match_filter(processed_sentence,
-                                                    set(female_attributes_filters).union(male_attributes_filters),
-                                                    'GENDERED ATTRIBUTES')
-    gender_matches_jobs = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters),
-                                              'GENDERED JOBS')
-    gender_matches_names = string_match_filter(processed_sentence, set(female_names).union(male_names),
-                                               'GENDERED NAMES')
-    gender_matches_orientation = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary),
-                                                     'GENDERED ORIENTATION')
-    gender_matches_titles = string_match_filter(processed_sentence, set(female_titles).union(male_titles),
-                                                'GENDERED TITLES')
+    # gender_matches_attributes = string_match_filter(processed_sentence,
+    #                                                 set(female_attributes_filters).union(male_attributes_filters),
+    #                                                 'GENDERED ATTRIBUTES')
+    # gender_matches_jobs = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters),
+    #                                           'GENDERED JOBS')
+    # gender_matches_names = string_match_filter(processed_sentence, set(female_names).union(male_names),
+    #                                            'GENDERED NAMES')
+    # gender_matches_orientation = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary),
+    #                                                  'GENDERED ORIENTATION')
+    # gender_matches_titles = string_match_filter(processed_sentence, set(female_titles).union(male_titles),
+    #                                             'GENDERED TITLES')
 
     processed_sentence = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary),
                                              'GENDERED ORIENTATION')
@@ -134,13 +136,7 @@ def process_sentence(sentence):
                                              'GENDERED JOBS')
     processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names), 'GENDERED NAMES')
 
-    if '[NAME]' or '[FEMALE ATTRIBUTES]' or '[MALE ATTRIBUTES]' or '[FEMALE NAME]' or '[MALE NAME]' or '[FEMALE JOB]' or '[MALE JOB]' in processed_sentence:
-        print("Processed sentence:", processed_sentence)
-        # print("String matching for gender attributes:", gender_matches_attributes)
-        # print("String matching for gender jobs:", gender_matches_jobs)
-        # print("String matching for gender names:", gender_matches_names)
-        # print("String matching for gender orientation or pronouns:", gender_matches_orientation)
-        # print("String matching for gender titles:", gender_matches_titles)
+    return processed_sentence
 
 
 def test():
