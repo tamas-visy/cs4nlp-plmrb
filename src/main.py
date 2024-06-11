@@ -71,7 +71,7 @@ def main():
     for lm in lms:
         result_types: List[int | Literal["initial", "final", "middle"]] = [
             "initial",
-            *list(range(lm.num_encoder_layers + 1)),
+            "middle",  # "*list(range(lm.num_encoder_layers + 1)),
             "final"]
         for result_type in result_types:
             result = process.complete(
@@ -83,7 +83,13 @@ def main():
             )
             result['value'] = lm.__class__.__name__
             result['result_type'] = result_type
-            result = result.reset_index().set_index(['value', 'result_type', 'group', 'subject'])
+            try:
+                result = result.reset_index().set_index(['value', 'result_type', 'group', 'subject'])
+            except KeyError:
+                # happens if subject not in the columns
+                result = result.reset_index()
+                result['subject'] = result['group']  # this is not really valid, but it's a workaround
+                result = result.set_index(['value', 'result_type', 'group', 'subject'])
             results.append(result)
 
     results: pd.DataFrame = pd.concat(results)
