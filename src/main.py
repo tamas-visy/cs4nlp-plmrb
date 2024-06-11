@@ -33,7 +33,7 @@ def main():
         logger.debug(f"Subsampled dataset #1 to {len(dataset_1)} rows")
 
     from src.data.clean import clean_dataset
-    dataset_1 = clean_dataset(dataset_1)  # TODO use proper version
+    dataset_1 = clean_dataset(dataset_1)
     logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
     # TODO save cleaned dataset
 
