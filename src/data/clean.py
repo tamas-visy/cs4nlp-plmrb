@@ -11,12 +11,17 @@ def clean_dataset(dataset: TextDataset, dummy=False) -> TextDataset:
     """Cleans the dataset using cleaning measures such as filtering via string matching or Named Entity Recognition."""
     # Can use NLTK or spaCy
     if not dummy:
-        dataset = dataset.map(lambda row: {"input": process_sentence(row["input"]), "label": row["label"]})
+        count = 0
+        dataset_clean = dataset.map(lambda row: {"input": process_sentence(row["input"]), "label": row["label"]})
+        for i,j in zip(dataset, dataset_clean):
+            if i!=j:
+                count += 1
+        logger.info(f"Masked {count} rows")
     else:
         # Dummy version drops rows with "London" in them
-        dataset = dataset.filter(lambda row: "London".lower() not in row['input'])
+        dataset_clean = dataset.filter(lambda row: "London".lower() not in row['input'])
         logger.warning("This is a dummy implementation")
-    return dataset
+    return dataset_clean
 
 
 # ######################################################################################################################
@@ -57,18 +62,25 @@ def read_names(file_path):
 # https://github.com/amity/gender-neutralize/
 #   gender-neutral job counterparts
 
-female_names = read_names(IOHandler.raw_path_to("dropping/female.js"))
-male_names = read_names(IOHandler.raw_path_to("dropping/male.js"))
-male_titles = read_wordlist(IOHandler.raw_path_to("dropping/male_word_file.txt"))
-female_titles = read_wordlist(IOHandler.raw_path_to("dropping/female_word_file.txt"))
-female_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/female.txt"))
-male_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/male.txt"))
+female_names = read_names(IOHandler.raw_path_to("dropping/female_names.js"))
+male_names = read_names(IOHandler.raw_path_to("dropping/male_names.js"))
+
+male_titles = read_wordlist(IOHandler.raw_path_to("dropping/male_titles.txt"))
+female_titles = read_wordlist(IOHandler.raw_path_to("dropping/female_titles.txt"))
+
+female_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/female_jobs.txt"))
+male_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/male_jobs.txt"))
+
 cis = read_wordlist(IOHandler.raw_path_to("dropping/cis.txt"))
 trans = read_wordlist(IOHandler.raw_path_to("dropping/trans.txt"))
-non_binary = read_wordlist(IOHandler.raw_path_to("dropping/non-binary.txt"))
-female_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/female_adjectives.wordlist"))
-male_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/male_adjectives.wordlist"))
+non_binary = cis # A workaround to avoid using non-binary wordlist without changing too much code
+# non_binary = read_wordlist(IOHandler.raw_path_to("dropping/non-binary.txt"))
+
+# female_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/female_adjectives.wordlist"))
+# male_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/male_adjectives.wordlist"))
+
 extra = read_wordlist(IOHandler.raw_path_to("dropping/extra.txt"))
+
 male_jobs_filters = [word for word in male_jobs_filters if
                      word not in cis and word not in trans and word not in non_binary]
 female_jobs_filters = [word for word in female_jobs_filters if
@@ -84,23 +96,19 @@ def process_sentence(sentence: str) -> str:
     # Disabled ner_filter as it's only working on gendered attributes
     processed_sentence = sentence
 
-    processed_sentence = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary))
-    # 'ORIENTATION')
+    processed_sentence = string_match_filter(processed_sentence, set(trans).union(cis).union(non_binary), 'ORIENTATION')
 
-    processed_sentence = string_match_filter(processed_sentence, set(female_titles).union(male_titles))
-    # 'TITLE OR PRONOUN')
+    processed_sentence = string_match_filter(processed_sentence, set(female_titles).union(male_titles), 'TITLE/PRONOUN')
 
     # Not replacing gendered attributes
     # processed_sentence = string_match_filter(processed_sentence,
     #                                          set(female_attributes_filters).union(male_attributes_filters),
     #                                          'GENDERED ATTRIBUTES')
-    processed_sentence = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters))
-    # 'JOB')
+    processed_sentence = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters), 'JOB')
 
-    processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names))
-    # 'NAME OR PRONOUN')
+    processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names), 'NAME')
 
-    processed_sentence = string_match_filter(processed_sentence, extra)
+    processed_sentence = string_match_filter(processed_sentence, extra, 'ORIENTATION') # Mask name will change. For now, this is fitting
 
     return processed_sentence
 
