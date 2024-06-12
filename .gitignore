@@ -79,6 +79,8 @@ target/
 /data/*/*
 !/data/*/.gitkeep
 !/data/raw/dropping
+!/data/interim/train_dataset_interim.csv
+!/data/processed/train_dataset_with_masks.csv
 
 # Mac OS-specific storage files
 .DS_Store
