@@ -1,5 +1,7 @@
 import logging
 import re
+import spacy
+nlp = spacy.load("en_core_web_sm")
 
 from src.data.iohandler import IOHandler
 from src.data.datatypes import TextDataset
@@ -92,6 +94,25 @@ def string_match_filter(text, filters, mask="MASK"):
     return re.sub(pattern, '[' + mask + ']', text)
 
 
+def replace_names(text):
+    doc = nlp(text)
+    # Create a list to hold the modified text parts
+    modified_text = []
+    last_idx = 0
+    # Iterate over the named entities
+    for ent in doc.ents:
+        if ent.label_ == "PERSON":
+            # Append the text before the entity
+            modified_text.append(text[last_idx:ent.start_char])
+            # Append the replacement text
+            modified_text.append("[NAME]")
+            # Update the last_idx to the end of the current entity
+            last_idx = ent.end_char
+    # Append the remaining text after the last entity
+    modified_text.append(text[last_idx:])
+    return ''.join(modified_text)
+
+
 def process_sentence(sentence: str) -> str:
     # Disabled ner_filter as it's only working on gendered attributes
     processed_sentence = sentence
@@ -106,7 +127,8 @@ def process_sentence(sentence: str) -> str:
     #                                          'GENDERED ATTRIBUTES')
     processed_sentence = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters), 'JOB')
 
-    processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names), 'NAME')
+    # processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names), 'NAME')
+    processed_sentence = replace_names(processed_sentence)
 
     processed_sentence = string_match_filter(processed_sentence, extra, 'ORIENTATION') # Mask name will change. For now, this is fitting
 
