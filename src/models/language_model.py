@@ -13,6 +13,7 @@ from src.data.datatypes import TextData, EncodingData
 from src.data.download import Downloader
 from src.data.iohandler import IOHandler
 from src.models.tokenizer import Tokenizer
+from src.utils.misc import stable_hash
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ class TransformerModel(LanguageModel):
         self._get_initial_can_be_batched = True
         """A flag to disable batch inference due to 'attention_mask' not being supported in get_initial"""
 
-        self._cache = dict()
+        self._cache = IOHandler.load_cache_of(self)
 
     @property
     def num_encoder_layers(self):
@@ -93,10 +94,14 @@ class TransformerModel(LanguageModel):
         if not caching:
             raise NotImplementedError
 
-        if (texts, result_type, agg_func) in self._cache:
-            return self._cache[(texts, result_type, agg_func)]
+        cache_key = (agg_func.__name__, result_type, str(stable_hash('='.join(texts)))[:9])
+        if cache_key in self._cache:
+            logger.debug(f"Cache contains {cache_key}, using that instead of encoding again")
+            return self._cache[cache_key]
 
-        return self._encode(texts, result_type=result_type, agg_func=agg_func)
+        encodings: List[np.ndarray] = self._encode(texts, result_type=result_type, agg_func=agg_func)
+        IOHandler.save_cache_of(self, encodings, *cache_key)
+        return encodings
 
     def _encode(self, texts, result_type=None, agg_func=None):
         if result_type is None or agg_func is None:
@@ -121,7 +126,8 @@ class TransformerModel(LanguageModel):
                         output = self._get_final(**x)
                     else:
                         output = self._get_at(at=result_type, **x)
-                outputs.extend(agg_func(output, dim=1).cpu().numpy().tolist())  # should work with batches
+                # I removed .tolist() from after .numpy(), which might cause issues
+                outputs.extend(agg_func(output, dim=1).cpu().numpy())  # should work with batches
                 bar.update(len(output))
         return outputs
 

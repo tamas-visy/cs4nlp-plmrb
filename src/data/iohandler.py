@@ -164,3 +164,27 @@ class IOHandler:
             pd.DataFrame(dataset_1).to_csv(processed_dataset_1_path, index=False)
             logger.info(f"Saved processed dataset to {processed_dataset_1_path}")
         return dataset_1
+
+    @classmethod
+    def save_cache_of(cls, lm, data, *args):
+        directory = cls.processed_path_to(f"{lm.__class__.__name__}")
+        os.makedirs(directory, exist_ok=True)
+        p = f"{directory}/{'_'.join([str(arg) for arg in args])}.npy"
+        with open(p, "wb") as f:
+            np.save(f, np.array(data, dtype=float), allow_pickle=False)
+        logger.debug(f"Saved cache to {p}")
+
+    @classmethod
+    def load_cache_of(cls, lm) -> dict:
+        directory = cls.processed_path_to(f"{lm.__class__.__name__}")
+        d = {}
+        if os.path.isdir(directory):
+            for p in os.listdir(directory):
+                p = f"{directory}/{p}"
+                if os.path.isfile(p):
+                    assert p.endswith(".npy"), "Found non-cache files in cache directory"
+                    cache_key = tuple(os.path.basename(p).removesuffix(".npy").split('_'))
+                    with open(p, "rb") as f:
+                        d[cache_key] = np.load(f)
+        logger.debug(f"Found cache for {lm.__class__.__name__} with {len(d)} values")
+        return d
