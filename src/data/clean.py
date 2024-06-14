@@ -1,12 +1,21 @@
 import logging
 import re
 import spacy
-nlp = spacy.load("en_core_web_sm")
 
 from src.data.iohandler import IOHandler
 from src.data.datatypes import TextDataset
 
 logger = logging.getLogger(__name__)
+
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    # probably not installed
+    from spacy.cli import download
+    download("en_core_web_sm")
+
+    # retry
+    nlp = spacy.load("en_core_web_sm")
 
 
 def clean_dataset(dataset: TextDataset, dummy=False) -> TextDataset:
@@ -15,8 +24,8 @@ def clean_dataset(dataset: TextDataset, dummy=False) -> TextDataset:
     if not dummy:
         count = 0
         dataset_clean = dataset.map(lambda row: {"input": process_sentence(row["input"]), "label": row["label"]})
-        for i,j in zip(dataset, dataset_clean):
-            if i!=j:
+        for i, j in zip(dataset, dataset_clean):
+            if i != j:
                 count += 1
         logger.info(f"Masked {count} rows")
     else:
@@ -75,7 +84,7 @@ male_jobs_filters = read_wordlist(IOHandler.raw_path_to("dropping/male_jobs.txt"
 
 cis = read_wordlist(IOHandler.raw_path_to("dropping/cis.txt"))
 trans = read_wordlist(IOHandler.raw_path_to("dropping/trans.txt"))
-non_binary = cis # A workaround to avoid using non-binary wordlist without changing too much code
+non_binary = cis  # A workaround to avoid using non-binary wordlist without changing too much code
 # non_binary = read_wordlist(IOHandler.raw_path_to("dropping/non-binary.txt"))
 
 # female_attributes_filters = read_wordlist(IOHandler.raw_path_to("dropping/female_adjectives.wordlist"))
@@ -125,12 +134,14 @@ def process_sentence(sentence: str) -> str:
     # processed_sentence = string_match_filter(processed_sentence,
     #                                          set(female_attributes_filters).union(male_attributes_filters),
     #                                          'GENDERED ATTRIBUTES')
-    processed_sentence = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters), 'JOB')
+    processed_sentence = string_match_filter(processed_sentence, set(female_jobs_filters).union(male_jobs_filters),
+                                             'JOB')
 
     # processed_sentence = string_match_filter(processed_sentence, set(female_names).union(male_names), 'NAME')
     processed_sentence = replace_names(processed_sentence)
 
-    processed_sentence = string_match_filter(processed_sentence, extra, 'ORIENTATION') # Mask name will change. For now, this is fitting
+    processed_sentence = string_match_filter(processed_sentence, extra,
+                                             'ORIENTATION')  # Mask name will change. For now, this is fitting
 
     return processed_sentence
 

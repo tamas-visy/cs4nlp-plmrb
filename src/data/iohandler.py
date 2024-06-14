@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from typing import List, Tuple, Dict
 
 import numpy as np
@@ -14,10 +15,19 @@ logger = logging.getLogger(__name__)
 class IOHandler:
     _path_raw = "data/raw"
     _path_interim = "data/interim"
+    _path_processed = "data/processed"
 
     @classmethod
     def raw_path_to(cls, target):
         return f"{cls._path_raw}/{target}"
+
+    @classmethod
+    def interim_path_to(cls, target):
+        return f"{cls._path_interim}/{target}"
+
+    @classmethod
+    def processed_path_to(cls, target):
+        return f"{cls._path_processed}/{target}"
 
     @classmethod
     def load_dummy_dataset(cls, raw=True) -> TextDataset:
@@ -120,3 +130,37 @@ class IOHandler:
         dataset = dataset.rename_columns(dict(sentence="input", nationality="subject"))
         # dataset = dataset.filter(lambda row: "mask" not in row["group"])
         return dataset
+
+    @classmethod
+    def get_dataset_1(cls, develop_mode=False) -> TextDataset:
+        """Loads dataset 1, using cached files if available."""
+        processed_dataset_1_path = IOHandler.processed_path_to("train_dataset_processed.csv")
+        if os.path.exists(processed_dataset_1_path):
+            dataset_1 = Dataset.from_csv(processed_dataset_1_path)
+            logger.info(f"Found processed dataset with {len(dataset_1)} rows")
+        else:
+            interim_dataset_1_path = IOHandler.interim_path_to("train_dataset_interim.csv")
+            if os.path.exists(interim_dataset_1_path):
+                dataset_1 = Dataset.from_csv(interim_dataset_1_path)
+                logger.info(f"Found interim dataset with {len(dataset_1)} rows")
+            else:
+                from datasets import concatenate_datasets
+                # dataset_1 = IOHandler.load_dummy_dataset()
+                # Note: to concatenate datasets, they must have compatible features
+                dataset_1 = concatenate_datasets(
+                    [IOHandler.load_sst(),
+                     IOHandler.load_tweeteval()])
+                logger.info(f"Loaded dataset with {len(dataset_1)} rows")
+
+                if develop_mode:
+                    dataset_1 = dataset_1.shuffle(seed=42).select(range(1000))
+                    logger.debug(f"Subsampled dataset #1 to {len(dataset_1)} rows")
+                pd.DataFrame(dataset_1).to_csv(interim_dataset_1_path, index=False)
+                logger.info(f"Saved interim dataset to {interim_dataset_1_path}")
+
+            from src.data.clean import clean_dataset
+            dataset_1 = clean_dataset(dataset_1)
+            logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
+            pd.DataFrame(dataset_1).to_csv(processed_dataset_1_path, index=False)
+            logger.info(f"Saved processed dataset to {processed_dataset_1_path}")
+        return dataset_1

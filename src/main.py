@@ -1,5 +1,5 @@
 from dotenv import load_dotenv, find_dotenv
-import pandas as pd
+
 
 def main():
     import environment
@@ -19,27 +19,11 @@ def main():
     Downloader.all(raise_notimplemented=False)
     logger.debug("Downloaded data")
 
+    from datasets import Dataset
     from src.data.iohandler import IOHandler
-    from datasets import concatenate_datasets
-    # dataset_1 = IOHandler.load_dummy_dataset()
-    # Note: to concatenate datasets, they must have compatible features
-    dataset_1 = concatenate_datasets(
-        [IOHandler.load_sst(),
-         IOHandler.load_tweeteval()])
-    logger.info(f"Loaded dataset with {len(dataset_1)} rows")
-
-    if DEVELOP_MODE:
-        dataset_1 = dataset_1.shuffle(seed=42).select(range(1000))
-        logger.debug(f"Subsampled dataset #1 to {len(dataset_1)} rows")
-    pd.DataFrame(dataset_1).to_csv("data\\interim\\train_dataset_interim.csv")
-
-    from src.data.clean import clean_dataset
-    dataset_1 = clean_dataset(dataset_1)
-    logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
-    pd.DataFrame(dataset_1).to_csv("data\\processed\\train_dataset_processed.csv")
+    dataset_1: Dataset = IOHandler.get_dataset_1(develop_mode=DEVELOP_MODE)
 
     # Evaluate encodings of LM using the probe
-    from datasets import Dataset
     dataset_2: Dataset
     if DEVELOP_MODE:
         # We have a good expectation of how these subjects should be ordered,
@@ -59,6 +43,7 @@ def main():
     logger.info(f"Generated {len(dataset_2)} sentences")
 
     from typing import List, Type, Literal
+    import pandas as pd
     from src.models.language_model import TransformerModel, GPT2LanguageModel
     from src.models.probe import Probe, MLPProbe
     import src.process as process

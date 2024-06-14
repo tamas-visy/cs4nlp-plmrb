@@ -77,19 +77,30 @@ class TransformerModel(LanguageModel):
         self._get_initial_can_be_batched = True
         """A flag to disable batch inference due to 'attention_mask' not being supported in get_initial"""
 
+        self._cache = dict()
+
     @property
     def num_encoder_layers(self):
         return len(self.model.encoder.layer)
 
     def encode(self, texts: TextData, result_type: int | Literal["initial", "final", "middle"] = "final",
-               agg_func=torch.mean) -> EncodingData:
+               agg_func=torch.mean,
+               caching=True) -> EncodingData:
         """Returns the encodings of texts using the aggregation function over a sentence.
         Depending on result type - "initial", "final", "middle", or an integer the vectors after
         the appropriate layer are returned"""
         logger.debug(f"{self.__class__.__name__} is encoding {len(texts)} sentences")
+        if not caching:
+            raise NotImplementedError
+
+        if (texts, result_type, agg_func) in self._cache:
+            return self._cache[(texts, result_type, agg_func)]
+
         return self._encode(texts, result_type=result_type, agg_func=agg_func)
 
-    def _encode(self, texts, result_type, agg_func):
+    def _encode(self, texts, result_type=None, agg_func=None):
+        if result_type is None or agg_func is None:
+            raise NotImplementedError("You bypassed encode() and did not provide required arguments")
         if result_type == "middle":
             result_type = self.num_encoder_layers // 2
 
