@@ -94,9 +94,9 @@ class TransformerModel(LanguageModel):
         if not caching:
             raise NotImplementedError
 
-        cache_key = (agg_func.__name__, result_type, str(stable_hash('='.join(texts)))[:9])
+        cache_key = (agg_func.__name__, str(result_type), str(stable_hash('='.join(texts)))[:9])
         if cache_key in self._cache:
-            logger.debug(f"Cache contains {cache_key}, using that instead of encoding again")
+            logger.debug(f"Found {cache_key} in cache, using that instead of encoding again")
             return self._cache[cache_key]
 
         encodings: List[np.ndarray] = self._encode(texts, result_type=result_type, agg_func=agg_func)

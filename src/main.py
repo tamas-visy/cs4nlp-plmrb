@@ -64,18 +64,20 @@ def main():
                 result_type=result_type,
                 probe_factory=probe_factory,
                 dataset_1=dataset_1,
-                dataset_2=dataset_2
+                dataset_2=dataset_2,
+                # only_generate_encodings=True  # enable this to skip probe training
             )
-            result['value'] = lm.__class__.__name__
-            result['result_type'] = result_type
-            try:
-                result = result.reset_index().set_index(['value', 'result_type', 'group', 'subject'])
-            except KeyError:
-                # happens if subject not in the columns
-                result = result.reset_index()
-                result['subject'] = result['group']  # this is not really valid, but it's a workaround
-                result = result.set_index(['value', 'result_type', 'group', 'subject'])
-            results.append(result)
+            if result is not None:
+                result['value'] = lm.__class__.__name__
+                result['result_type'] = result_type
+                try:
+                    result = result.reset_index().set_index(['value', 'result_type', 'group', 'subject'])
+                except KeyError:
+                    # happens if subject not in the columns
+                    result = result.reset_index()
+                    result['subject'] = result['group']  # this is not really valid, but it's a workaround
+                    result = result.set_index(['value', 'result_type', 'group', 'subject'])
+                results.append(result)
 
     results: pd.DataFrame = pd.concat(results)
 
