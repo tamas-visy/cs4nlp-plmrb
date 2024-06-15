@@ -68,7 +68,7 @@ def main():
     # TODO also evaluate some baseline
 
     lms: List[TransformerModel] = [
-        GPT2LanguageModel(),  # idx: G
+        # GPT2LanguageModel(),  # idx: G
         BERTLanguageModel(),  # idx: B
         # LLaMALanguageModel(), #idx: L
         # RoBERTaLanguageModel(),  # idx: R
