@@ -12,25 +12,33 @@ from src.models.probe import Probe
 logger = logging.getLogger(__name__)
 
 
-def complete(lm: TransformerModel,
-             result_type: int | Literal["initial", "final", "middle"],
-             probe_factory: Type[Probe],
-             dataset_1: TextDataset,
-             dataset_2: EncodingDataset,
-             only_generate_encodings=False) -> pd.DataFrame:
+def complete(
+    lm: TransformerModel,
+    result_type: int | Literal["initial", "final", "middle"],
+    probe_factory: Type[Probe],
+    dataset_1: TextDataset,
+    dataset_2: EncodingDataset,
+    only_generate_encodings=False,
+) -> pd.DataFrame:
     # Setup instances used for testing
     probe = probe_factory()  # noqa  # child classes implement it
 
-    encodings: EncodingData = lm.encode(dataset_1["input"], result_type=result_type)  # TODO potentially save encodings
+    encodings: EncodingData = lm.encode(dataset_1["input"], result_type=result_type)
 
     if not only_generate_encodings:
-        probe.train(dataset=Dataset.from_dict(dict(input=encodings, label=dataset_1["label"])))
+        probe.train(
+            dataset=Dataset.from_dict(dict(input=encodings, label=dataset_1["label"]))
+        )
         # TODO potentially save trained probe
         logger.info(f"Trained probe")
 
-    encodings = lm.encode(dataset_2["input"], result_type=result_type)  # TODO save LM encodings of templates
+    encodings = lm.encode(
+        dataset_2["input"], result_type=result_type
+    )  # TODO save LM encodings of templates
     if not only_generate_encodings:
-        output_sentiments = probe.predict(encodings)  # TODO potentially save output sentiments
+        output_sentiments = probe.predict(
+            encodings
+        )  # TODO potentially save output sentiments
         logger.info(f"Generated predictions")
 
         return evaluate(dataset_2, output_sentiments)
