@@ -48,7 +48,7 @@ coverage.xml
 *.pot
 
 # Django stuff:
-*.log
+# *.log
 
 # Sphinx documentation
 docs/_build/
@@ -92,4 +92,3 @@ target/
 # Mypy cache
 .mypy_cache/
 
-out

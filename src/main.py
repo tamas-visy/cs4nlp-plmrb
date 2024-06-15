@@ -40,7 +40,7 @@ def main():
         dummy_generated = generate(templates, groups, adjectives)
         dataset_2 = dummy_generated
     else:
-        dataset_2 = IOHandler.load_labdet_test()
+        dataset_2 = IOHandler.get_dataset_2()
 
     if DEVELOP_MODE:
         dataset_2 = dataset_2.shuffle(seed=42).select(range(100))
@@ -68,14 +68,14 @@ def main():
     # TODO also evaluate some baseline
 
     lms: List[TransformerModel] = [
-        # GPT2LanguageModel(),
-        BERTLanguageModel(),
-        LLaMALanguageModel(),
-        RoBERTaLanguageModel(),
-        ELECTRALanguageModel(),
-        GloveLanguageModel(),
-        T5LanguageModel(),
-        XLNetLanguageModel(),
+        GPT2LanguageModel(),  # idx: G
+        BERTLanguageModel(),  # idx: B
+        # LLaMALanguageModel(), #idx: L
+        # RoBERTaLanguageModel(),  # idx: R
+        # ELECTRALanguageModel(),  # idx: E
+        # GloveLanguageModel(),  # idx: G
+        # T5LanguageModel(),  # idx: T
+        # XLNetLanguageModel(),  # idx: X
     ]
     probe_factory: Type[Probe] = MLPProbe
     for lm in lms:

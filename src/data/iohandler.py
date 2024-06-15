@@ -33,8 +33,8 @@ class IOHandler:
     def load_dummy_dataset(cls, raw=True) -> TextDataset:
         if raw:
             df = pd.read_csv(cls.raw_path_to("dummy.csv"), index_col=0)
-            df['label'] = df[['Happy', 'Angry', 'Sad']].apply(np.array, axis=1)
-            df = df.drop(['Happy', 'Angry', 'Sad'], axis="columns")
+            df["label"] = df[["Happy", "Angry", "Sad"]].apply(np.array, axis=1)
+            df = df.drop(["Happy", "Angry", "Sad"], axis="columns")
             df.index.name = "index"
             return Dataset.from_pandas(df).rename_column("Text", "input")
         else:
@@ -61,10 +61,15 @@ class IOHandler:
 
     @classmethod
     def load_glove_embeddings(cls, version, embedding_dim) -> Dict[str, np.ndarray]:
-        logger.debug(f"Loading GloVe embeddings "
-                     f"from {cls.raw_path_to(f'GloVe{version.name}/glove.6B.{embedding_dim}d.txt')}")
+        logger.debug(
+            f"Loading GloVe embeddings "
+            f"from {cls.raw_path_to(f'GloVe{version.name}/glove.6B.{embedding_dim}d.txt')}"
+        )
         embeddings_dict = {}
-        with open(cls.raw_path_to(f"GloVe{version.name}/glove.6B.{embedding_dim}d.txt"), encoding="utf-8") as f:
+        with open(
+            cls.raw_path_to(f"GloVe{version.name}/glove.6B.{embedding_dim}d.txt"),
+            encoding="utf-8",
+        ) as f:
             for line in f:
                 values = line.split()
                 embeddings_dict[values[0]] = np.asarray(values[1:], dtype=float)
@@ -92,7 +97,9 @@ class IOHandler:
 
         # Remove neutral rows and update the features
         dataset = dataset.filter(lambda row: row["label"] != TWEETEVAL_NEUTRAL_LABEL)
-        dataset = dataset.cast_column("label", ClassLabel(num_classes=2, names=['negative', 'positive']))
+        dataset = dataset.cast_column(
+            "label", ClassLabel(num_classes=2, names=["negative", "positive"])
+        )
 
         dataset = dataset.map(_convert_positive_to_one)
         dataset = dataset.rename_columns(dict(text="input"))["test"]
@@ -101,8 +108,12 @@ class IOHandler:
     @classmethod
     def load_labdet_test(cls) -> EncodingDataset | GroupedSubjectsDataset:
         """Loads the english LABDet test set, which contains different nationalities with neutral adjectives."""
-        dataset = Dataset.from_json(IOHandler.raw_path_to("LABDet/LABDet-main/test/en.json"))
-        with open(IOHandler.raw_path_to("LABDet/LABDet-main/Templates/en_template.json")) as f:
+        dataset = Dataset.from_json(
+            IOHandler.raw_path_to("LABDet/LABDet-main/test/en.json")
+        )
+        with open(
+            IOHandler.raw_path_to("LABDet/LABDet-main/Templates/en_template.json")
+        ) as f:
             data = json.load(f)
         adjective_map = dict()
         pos_adj = data["sentiment_templates"][0]["pos_adj"]
@@ -117,10 +128,11 @@ class IOHandler:
 
         nationality_map = data["alternatives"]
 
-        dataset = dataset.add_column(name="label",
-                                     column=[adjective_map[dataset[i]["adj"]] for i in range(len(dataset))])
-        dataset = dataset.add_column(name="group",
-                                     column=dataset["nationality"])
+        dataset = dataset.add_column(
+            name="label",
+            column=[adjective_map[dataset[i]["adj"]] for i in range(len(dataset))],
+        )
+        dataset = dataset.add_column(name="group", column=dataset["nationality"])
 
         def nationality_map_func(row):
             row.update({"nationality": nationality_map[row["nationality"]]})
@@ -134,22 +146,27 @@ class IOHandler:
     @classmethod
     def get_dataset_1(cls, develop_mode=False) -> TextDataset:
         """Loads dataset 1, using cached files if available."""
-        processed_dataset_1_path = IOHandler.processed_path_to("train_dataset_processed.csv")
+        processed_dataset_1_path = IOHandler.processed_path_to(
+            "train_dataset_processed.csv"
+        )
         if os.path.exists(processed_dataset_1_path):
             dataset_1 = Dataset.from_csv(processed_dataset_1_path)
             logger.info(f"Found processed dataset with {len(dataset_1)} rows")
         else:
-            interim_dataset_1_path = IOHandler.interim_path_to("train_dataset_interim.csv")
+            interim_dataset_1_path = IOHandler.interim_path_to(
+                "train_dataset_interim.csv"
+            )
             if os.path.exists(interim_dataset_1_path):
                 dataset_1 = Dataset.from_csv(interim_dataset_1_path)
                 logger.info(f"Found interim dataset with {len(dataset_1)} rows")
             else:
                 from datasets import concatenate_datasets
+
                 # dataset_1 = IOHandler.load_dummy_dataset()
                 # Note: to concatenate datasets, they must have compatible features
                 dataset_1 = concatenate_datasets(
-                    [IOHandler.load_sst(),
-                     IOHandler.load_tweeteval()])
+                    [IOHandler.load_sst(), IOHandler.load_tweeteval()]
+                )
                 logger.info(f"Loaded dataset with {len(dataset_1)} rows")
 
                 if develop_mode:
@@ -159,11 +176,22 @@ class IOHandler:
                 logger.info(f"Saved interim dataset to {interim_dataset_1_path}")
 
             from src.data.clean import clean_dataset
+
             dataset_1 = clean_dataset(dataset_1)
             logger.info(f"Cleaned dataset, {len(dataset_1)} rows remaining")
             pd.DataFrame(dataset_1).to_csv(processed_dataset_1_path, index=False)
             logger.info(f"Saved processed dataset to {processed_dataset_1_path}")
-        return dataset_1
+        return dataset_1.shuffle(seed=42)
+
+    @classmethod
+    def get_dataset_2(cls) -> TextDataset:
+        """Loads dataset 2, using cached files if available."""
+        processed_dataset_2_path = IOHandler.processed_path_to(
+            "generated_eval_dataset_with_mask.csv"
+        )
+        dataset_2 = Dataset.from_csv(processed_dataset_2_path)
+        logger.info(f"Found processed dataset with {len(dataset_2)} rows")
+        return dataset_2
 
     @classmethod
     def save_cache_of(cls, lm, data, *args):
@@ -182,8 +210,12 @@ class IOHandler:
             for p in os.listdir(directory):
                 p = f"{directory}/{p}"
                 if os.path.isfile(p):
-                    assert p.endswith(".npy"), "Found non-cache files in cache directory"
-                    cache_key = tuple(os.path.basename(p).removesuffix(".npy").split('_'))
+                    assert p.endswith(
+                        ".npy"
+                    ), "Found non-cache files in cache directory"
+                    cache_key = tuple(
+                        os.path.basename(p).removesuffix(".npy").split("_")
+                    )
                     with open(p, "rb") as f:
                         d[cache_key] = np.load(f)
         logger.debug(f"Found cache for {lm.__class__.__name__} with {len(d)} values")

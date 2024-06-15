@@ -35,6 +35,9 @@ def complete(
     encodings = lm.encode(
         dataset_2["input"], result_type=result_type
     )  # TODO save LM encodings of templates
+    encodings = lm.encode(
+        dataset_2["input_neutral"], result_type=result_type
+    )  # TODO save LM encodings of templates
     if not only_generate_encodings:
         output_sentiments = probe.predict(
             encodings
