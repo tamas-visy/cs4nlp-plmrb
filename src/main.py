@@ -15,6 +15,7 @@ def main():
     logger.info("Starting main")
     if DEVELOP_MODE:
         logger.warning("DEVELOP_MODE is enabled")
+        # raise RuntimeError("Running with DEVELOP_MODE is not supported anymore")  # TODO comment in
 
     # Obtain raw datasets to data/raw
     from src.data.download import Downloader
@@ -39,13 +40,13 @@ def main():
         adjectives = IOHandler.load_dummy_adjectives()
         dummy_generated = generate(templates, groups, adjectives)
         dataset_2 = dummy_generated
+        logger.info(f"Generated {len(dataset_2)} sentences")
     else:
         dataset_2 = IOHandler.get_dataset_2()
 
     if DEVELOP_MODE:
         dataset_2 = dataset_2.shuffle(seed=42).select(range(100))
         logger.debug(f"Subsampled dataset #2 to {len(dataset_2)} rows")
-    logger.info(f"Generated {len(dataset_2)} sentences")
 
     from typing import List, Type, Literal
     import pandas as pd
