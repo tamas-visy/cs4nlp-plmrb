@@ -194,8 +194,9 @@ class IOHandler:
         return dataset_2
 
     @classmethod
-    def save_cache_of(cls, lm, data, *args):
-        directory = cls.processed_path_to(f"{lm.__class__.__name__}")
+    def save_cache_of(cls, obj, data, *args, parent_directory=None):
+        parent_directory = "" if parent_directory is None else f"{parent_directory}/"
+        directory = cls.processed_path_to(f"{parent_directory}{obj.__class__.__name__}")
         os.makedirs(directory, exist_ok=True)
         p = f"{directory}/{'_'.join([str(arg) for arg in args])}.npy"
         with open(p, "wb") as f:
@@ -203,8 +204,8 @@ class IOHandler:
         logger.debug(f"Saved cache to {p}")
 
     @classmethod
-    def load_cache_of(cls, lm) -> dict:
-        directory = cls.processed_path_to(f"{lm.__class__.__name__}")
+    def load_cache_of(cls, obj) -> dict:
+        directory = cls.processed_path_to(f"{obj.__class__.__name__}")
         d = {}
         if os.path.isdir(directory):
             for p in os.listdir(directory):
@@ -218,5 +219,5 @@ class IOHandler:
                     )
                     with open(p, "rb") as f:
                         d[cache_key] = np.load(f)
-        logger.debug(f"Found cache for {lm.__class__.__name__} with {len(d)} values")
+        logger.debug(f"Found cache for {obj.__class__.__name__} with {len(d)} values")
         return d

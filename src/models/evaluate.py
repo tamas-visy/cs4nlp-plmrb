@@ -14,6 +14,11 @@ def evaluate(truth: GroupedSubjectsDataset, predicted: SentimentData,
         # TODO consider moving to polars if too many rows
         logger.warning("Consider moving to polars as pandas might be slow")
 
+    if len(truth) == 2 * len(predicted):
+        raise NotImplementedError  # TODO Vansh handle case when neutral sentences are the second half of `predicted`
+    else:
+        assert len(truth) == len(predicted), f"Incompatible lengths: {len(truth)} != {len(predicted)}"
+
     df = truth.to_pandas()
     if show_subjects is None:
         # If we are working with less than 5 groups, show subjects grouped by groups, too

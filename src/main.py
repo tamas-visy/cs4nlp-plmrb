@@ -92,7 +92,7 @@ def main():
                 probe_factory=probe_factory,
                 dataset_1=dataset_1,
                 dataset_2=dataset_2,
-                only_generate_encodings=True,  # enable this to skip probe training
+                # only_generate_encodings=True,  # enable this to skip probe training
             )
             if result is not None:
                 result["value"] = lm.__class__.__name__
