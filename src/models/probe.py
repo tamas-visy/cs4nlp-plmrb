@@ -22,14 +22,14 @@ class Probe:
         # sentences is only used for caching
         logger.debug(f"{self.__class__.__name__} is predicting {len(data)} sentences")
 
-        cache_key = (str(stable_hash('='.join(sentences)))[:9], ) if sentences is not None else None
-        if cache_key in self._cache:
-            logger.debug(f"Found {cache_key} in cache, using that instead of predicting again")
-            return self._cache[cache_key]
+        # cache_key = (str(stable_hash('='.join(sentences)))[:9], ) if sentences is not None else None
+        # if cache_key in self._cache:
+        #     logger.debug(f"Found {cache_key} in cache, using that instead of predicting again")
+        #     return self._cache[cache_key]
 
         out = self._predict(data)
-        if cache_key is not None:
-            IOHandler.save_cache_of(self, out, *cache_key)
+        # if cache_key is not None:
+        #     IOHandler.save_cache_of(self, out, *cache_key)
 
         return out
 
