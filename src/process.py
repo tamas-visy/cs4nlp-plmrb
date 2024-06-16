@@ -32,13 +32,15 @@ def complete(
         # TODO potentially save trained probe
         logger.info(f"Trained probe")
 
-    encodings = lm.encode(
+    _normal = lm.encode(
         dataset_2["input"], result_type=result_type
     )  # TODO save LM encodings of templates
-    encodings = lm.encode(
+    _neutral = lm.encode(
         dataset_2["input_neutral"], result_type=result_type
     )  # TODO save LM encodings of templates
+    encodings = None
     if not only_generate_encodings:
+        assert encodings is not None, "encodings not set properly"
         output_sentiments = probe.predict(
             encodings
         )  # TODO potentially save output sentiments

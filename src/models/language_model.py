@@ -90,7 +90,7 @@ class TransformerModel(LanguageModel):
         """Returns the encodings of texts using the aggregation function over a sentence.
         Depending on result type - "initial", "final", "middle", or an integer the vectors after
         the appropriate layer are returned"""
-        logger.debug(f"{self.__class__.__name__} is encoding {len(texts)} sentences")
+        logger.debug(f"{self.__class__.__name__} is encoding {len(texts)} sentences - {result_type, agg_func, caching}")
         if not caching:
             raise NotImplementedError
 
