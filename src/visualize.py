@@ -1,7 +1,6 @@
 import json
 import os
 
-import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -38,27 +37,10 @@ results['Group'] = results['Group'].map(dict(F="Female", M="Male"))
 results = results.drop(columns=['raw_keys'])
 results = results.drop(results[results['Probe'] == 'random_forest'].index)
 print("WE ARE DROPPING RANDOM FOREST CUZ ITS SHITTY")
+
+layermap = dict(initial=0, middle=1, final=2)
+results = results.sort_values(by="Layer", key=lambda column: column.map(lambda e: layermap[e]))
 results = results.set_index(['LM', 'Probe', 'Layer', 'Metric', 'Group'])
-
-
-# print(results)
-
-def CustomPalette(data, colors):
-    # data contains group, subject, etc. as columns
-    palettes = {}
-    colors_i = iter(colors)
-
-    full = {}
-    for group in data["Group"].unique():
-        palettes[group] = sns.color_palette(next(colors_i), n_colors=data[data["Group"] == group]["subject"].nunique())
-
-        assert np.any(data["Layer"] == "final"), "Final results are missing, can't order based on them"
-        group_subjects = data[(data["Group"] == group) & (data["Layer"] == "final")].sort_values(
-            by="Value")["subject"].unique()
-        for i, subject in enumerate(group_subjects):
-            full[subject] = palettes[group][i]
-    return full
-
 
 # g2_name, other = 'Probe', 'LM',
 g2_name, other = 'LM', 'Probe',
@@ -85,7 +67,6 @@ for g2 in current_results[g2_name].unique():
                      # style=other,  # enabling removes confidence, shows raw lines
                      markers=True, dashes=False,
                      sort=False,
-                     # palette=CustomPalette(data=lm_metric_data, colors=["Blues", "Reds"])
                      ax=ax)
         ax.set_title(metric)
         ax.set_xlabel('')
