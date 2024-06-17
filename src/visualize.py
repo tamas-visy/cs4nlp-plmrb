@@ -35,8 +35,13 @@ results = pd.DataFrame(list(results.items()), columns=['raw_keys', 'Value'])
 results[['LM', 'Probe', 'Layer', 'Metric', 'Group']] = pd.DataFrame(results['raw_keys'].tolist(), index=results.index)
 results['Group'] = results['Group'].map(dict(F="Female", M="Male"))
 results = results.drop(columns=['raw_keys'])
+
 results = results.drop(results[results['Probe'] == 'random_forest'].index)
-print("WE ARE DROPPING RANDOM FOREST CUZ ITS SHITTY")
+print("Removing random forest")
+
+results = results.drop(results[results['Metric'] == 'Training Accuracy'].index)
+results = results.drop(results[results['Metric'] == 'Validation Accuracy'].index)
+print("Removing training and validation accuracy")
 
 layermap = dict(initial=0, middle=1, final=2)
 results = results.sort_values(by="Layer", key=lambda column: column.map(lambda e: layermap[e]))
@@ -49,6 +54,7 @@ current_results = results["Value"].reset_index()
 directory = 'out/images'
 os.makedirs(directory, exist_ok=True)
 
+print("#" * 32)
 for g2 in current_results[g2_name].unique():
     print(g2)
     fig, axes = plt.subplots(4, 2, figsize=(12, 16))
@@ -56,6 +62,7 @@ for g2 in current_results[g2_name].unique():
     axes_i = iter(axes.flatten())
 
     for metric in sorted(current_results['Metric'].unique()):
+        print("\t", metric)
         metric_data = current_results[current_results['Metric'] == metric]
 
         lm_metric_data = metric_data[metric_data[g2_name] == g2]
