@@ -44,7 +44,8 @@ results = results.drop(results[results['Metric'] == 'Validation Accuracy'].index
 print("Removing training and validation accuracy")
 
 layermap = dict(initial=0, middle=1, final=2)
-results = results.sort_values(by="Layer", key=lambda column: column.map(lambda e: layermap[e]))
+results = results.sort_values(by="Group", kind="stable")
+results = results.sort_values(by="Layer", key=lambda column: column.map(lambda e: layermap[e]), kind="stable")
 results = results.set_index(['LM', 'Probe', 'Layer', 'Metric', 'Group'])
 
 # g2_name, other = 'Probe', 'LM',
