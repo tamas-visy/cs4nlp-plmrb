@@ -41,7 +41,8 @@ print("Removing random forest")
 
 results = results.drop(results[results['Metric'] == 'Training Accuracy'].index)
 results = results.drop(results[results['Metric'] == 'Validation Accuracy'].index)
-print("Removing training and validation accuracy")
+results = results.drop(results[results['Metric'] == 'Test Accuracy'].index)
+print("Removing training and validation and test accuracy")
 
 layermap = dict(initial=0, middle=1, final=2)
 results = results.sort_values(by="Group", kind="stable")
@@ -69,9 +70,17 @@ for g2 in current_results[g2_name].unique():
         lm_metric_data = metric_data[metric_data[g2_name] == g2]
         lm_metric_data.loc[:, 'Layer'] = lm_metric_data["Layer"].astype(str)
 
+        # Calculate only DIFFERENCE
+        male_lm_metric_data = lm_metric_data[lm_metric_data['Group'] == "Male"].drop(columns="Group")
+        male_lm_metric_data = male_lm_metric_data.set_index(['LM', 'Probe', 'Layer', 'Metric'])
+        female_lm_metric_data = lm_metric_data[lm_metric_data['Group'] == "Female"].drop(columns="Group")
+        female_lm_metric_data = female_lm_metric_data.set_index(['LM', 'Probe', 'Layer', 'Metric'])
+        lm_metric_data = (male_lm_metric_data["Value"] - female_lm_metric_data["Value"]).to_frame()
+        lm_metric_data = lm_metric_data.reset_index()
+
         ax = next(axes_i)
         sns.lineplot(data=lm_metric_data, x='Layer', y="Value",
-                     hue='Group',
+                     # hue='Group',
                      # style=other,  # enabling removes confidence, shows raw lines
                      markers=True, dashes=False,
                      sort=False,
