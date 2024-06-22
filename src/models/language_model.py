@@ -1,4 +1,5 @@
 import logging
+import os
 from enum import Enum
 from typing import Literal, List
 
@@ -66,12 +67,17 @@ class GloveLanguageModel(LanguageModel):
 # ---------------------Transformers---------------------
 
 class TransformerModel(LanguageModel):
-    def __init__(self, model_name, model_class, tokenizer_class, device=None, batch_size: int | None = 16):
+    def __init__(self, model_name, model_class, tokenizer_class,
+                 half_precision=False, device=None, batch_size: int | None = 16):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        kwargs = {}
+        if half_precision:
+            kwargs["torch_dtype"] = torch.float16
+            logger.debug("FP16 enabled")
         self.device = device
         self.tokenizer = tokenizer_class.from_pretrained(model_name)
-        self.model = model_class.from_pretrained(model_name).to(self.device)
+        self.model = model_class.from_pretrained(model_name, **kwargs).to(self.device)
         self.model.eval()
         self.batch_size = batch_size  # about 2-3x speedup compared to no batching or large batches
 
@@ -198,15 +204,21 @@ class GPT2LanguageModel(TransformerModel):
 
 
 class LLaMALanguageModel(TransformerModel):
-    def __init__(self, model_name='meta-llama/Llama-2-7b-hf', device=None):
-        login()  # login might be needed for tokenizer creation
-        super().__init__(model_name, LlamaForCausalLM, LlamaTokenizer, device)
+    def __init__(self, model_name='meta-llama/Llama-2-7b-hf', half_precision=False, device=None):
+        login(token=os.getenv("HUGGINGFACE_TOKEN"))  # login might be needed for tokenizer creation already
+        logger.debug("Logged in")
+        super().__init__(model_name, LlamaForCausalLM, LlamaTokenizer,
+                         half_precision=half_precision, device=device, batch_size=8)
         # Add a padding token if not already present
 
         self.tokenizer.add_special_tokens({"pad_token": "<pad>"})  # why not self.tokenizer.eos_token?
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
         # self._get_initial_can_be_batched = False  # TODO check if necessary
+
+    def _get_initial(self, **kwargs):
+        # No model.embeddings, no model.wte, nothing else found...
+        return self._get_at(0, **kwargs)
 
 
 class RoBERTaLanguageModel(TransformerModel):
@@ -217,7 +229,7 @@ class RoBERTaLanguageModel(TransformerModel):
 
 class ELECTRALanguageModel(TransformerModel):
     def __init__(self, model_name='google/electra-base-discriminator', device=None):
-        super().__init__(model_name, ElectraModel, ElectraTokenizer, device)
+        super().__init__(model_name, ElectraModel, ElectraTokenizer, device=device)
         self._get_initial_can_be_batched = False
 
 

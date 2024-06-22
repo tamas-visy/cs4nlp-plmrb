@@ -70,8 +70,8 @@ def main():
 
     lms: List[TransformerModel] = [
         # GPT2LanguageModel(),  # idx: G
-        BERTLanguageModel(),  # idx: B
-        # LLaMALanguageModel(), #idx: L
+        # BERTLanguageModel(),  # idx: B
+        LLaMALanguageModel(half_precision=True), #idx: L
         # RoBERTaLanguageModel(),  # idx: R
         # ELECTRALanguageModel(),  # idx: E
         # GloveLanguageModel(),  # idx: G
@@ -92,7 +92,7 @@ def main():
                 probe_factory=probe_factory,
                 dataset_1=dataset_1,
                 dataset_2=dataset_2,
-                # only_generate_encodings=True,  # enable this to skip probe training
+                only_generate_encodings=True,  # enable this to skip probe training
             )
             if result is not None:
                 result["value"] = lm.__class__.__name__
