@@ -8,6 +8,8 @@ The progress report can be found [here](docs/Progress_Report.pdf).
 
 For the installation procedure, follow [INSTALL.md](docs/INSTALL.md).
 
+Because of lack of resources we opted to have the evaluation script on a google drive folder which can be accessed [here](https://colab.research.google.com/drive/1_16Jw_MPmz3fw_TCK7f0mDv9CywEYOEG?usp=drive_link).
+
 --------
 
 <p><small><i>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</i></small></p>
