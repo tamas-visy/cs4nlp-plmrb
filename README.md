@@ -3,8 +3,7 @@ Probing of Language Model Representations for Biases
 
 Project for [Computational Semantics for Natural Language Processing](https://www.mrinmaya.io/teaching_csnlp24) at ETH Zürich, Spring Semester 2024.
 
-See our proposal [here](docs/proposal.pdf).
-The progress report can be found [here](docs/Progress_Report.pdf).
+See our [proposal](docs/proposal.pdf), [progress report](docs/Progress_Report.pdf), [poster](docs/poster.pdf) and [final report](docs/Final_Report.pdf).
 
 For the installation procedure, follow [INSTALL.md](docs/INSTALL.md).
 
