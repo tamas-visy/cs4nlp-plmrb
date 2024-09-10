@@ -22,14 +22,35 @@ import src.simplifiedeval.probe_training.glove_gpu_playground as glove_gpu_playg
 import src.simplifiedeval.test_preds_to_csv as test_preds_to_csv
 import src.simplifiedeval.csvs_to_dictionary as csvs_to_dictionary
 
-gpu_playground.main()
+# Constants
+#   For playground scripts
+data_path = "/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed"
+out_path = "/content/drive/MyDrive/outputs_Hf_shuffle"
+train_hash = "499193892"
+test_hashes = ["336359147", "315634198"]
+layers = ["initial", "middle", "final"]
+playground_scripts_kwargs = dict(
+    data_path=data_path, out_path=out_path, train_hash=train_hash, test_hashes=test_hashes, layers=layers
+)
+#   For other scripts
+#       The constant CSV file path for test data
+constant_csv_path = '/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/generated_eval_dataset_with_mask.csv'
+#       The root data directory
+data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
+other_scripts_kwargs = dict(
+    constant_csv_path=constant_csv_path, data_dir=data_dir
+)
 
-cpu_playground.main()
+# "Cells"
 
-glove_cpu_playground.main()
+gpu_playground.main(**playground_scripts_kwargs)
 
-glove_gpu_playground.main()
+cpu_playground.main(**playground_scripts_kwargs)
 
-test_preds_to_csv.main()
+glove_cpu_playground.main(**playground_scripts_kwargs)
 
-csvs_to_dictionary.main()
+glove_gpu_playground.main(**playground_scripts_kwargs)
+
+test_preds_to_csv.main(**other_scripts_kwargs)
+
+csvs_to_dictionary.main(**other_scripts_kwargs)

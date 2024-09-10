@@ -9,13 +9,6 @@ from datasets import Dataset
 
 np.random.seed(42)
 
-# Paths and constants
-data_path = "/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed"
-out_path = "/content/drive/MyDrive/outputs_Hf_shuffle"
-train_hash = "499193892"
-test_hashes = ["336359147", "315634198"]
-layers = ["initial", "middle", "final"]
-
 
 def process_and_evaluate(layer, model_name, model, train_data, train_labels, val_data, val_labels, test_data_1,
                          test_data_2):
@@ -40,7 +33,7 @@ def process_and_evaluate(layer, model_name, model, train_data, train_labels, val
     return train_accuracy, val_accuracy, test_preds_labels
 
 
-def main():
+def main(data_path, out_path, train_hash, test_hashes, layers):
     """
     The script starts by importing necessary libraries for data manipulation and machine learning, including `numpy`,
     `pandas`, `sklearn`, and `datasets`. Paths and constants are set up for data and output directories,

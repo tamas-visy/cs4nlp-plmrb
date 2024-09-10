@@ -10,12 +10,6 @@ from src.simplifiedeval.probe_training.models import train_model, SimpleMLP
 
 np.random.seed(42)
 
-# Paths and constants
-data_path = "/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed"
-out_path = "/content/drive/MyDrive/outputs_Hf_shuffle"
-train_hash = "499193892"
-test_hashes = ["336359147", "315634198"]
-layers = ["initial", "middle", "final"]
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -49,7 +43,7 @@ def process_and_evaluate(layer, model_name, model, train_data, train_labels, val
     return train_accuracy, val_accuracy, test_preds_labels
 
 
-def main():
+def main(data_path, out_path, train_hash, test_hashes, layers):
     """
     This script begins by importing necessary libraries for data manipulation, machine learning, and neural network
     operations, including `numpy`, `pandas`, `torch`, and `sklearn`, along with setting a random seed for

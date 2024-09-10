@@ -52,7 +52,7 @@ def traverse_and_process(data_dir, constant_csv_path):
                             process_csv(test_preds_probs_path, output_test_preds_probs_path, constant_csv_path)
 
 
-def main():
+def main(constant_csv_path, data_dir):
     """
     The script is designed to process CSV files within a specified directory structure by identifying and manipulating
     `test_preds_probs.csv` files. Initially, it reads these files to extract probability columns `pos_prob1` and
@@ -69,11 +69,6 @@ def main():
     directory are systematically processed and updated according to the defined logic.
     """
     # 1 is NEUTRAL, 2 is regular!
-
-    # Define the constant CSV file path for test data
-    constant_csv_path = '/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/generated_eval_dataset_with_mask.csv'
-    # Define the root data directory
-    data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
 
     # Traverse the directory structure and process each test_preds_probs.csv file
     traverse_and_process(data_dir, constant_csv_path)

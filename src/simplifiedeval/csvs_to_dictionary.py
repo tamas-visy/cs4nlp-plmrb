@@ -141,7 +141,7 @@ def traverse_and_evaluate(data_dir):
     return results
 
 
-def main():
+def main(data_dir, **kwargs):
     """
     This script is designed to evaluate machine learning models by calculating various metrics from CSV files
     containing prediction results. It begins by importing necessary libraries such as `os`, `pandas`, and `json`. The
@@ -164,11 +164,11 @@ def main():
     evaluation files, saving the results as a JSON file for further analysis and printing them for verification. This
     comprehensive approach ensures thorough evaluation and systematic organization of results across different models and
     layers.
+
+    # --- #
+    kwargs is supposed to catch `constant_csv_path`
     """
     # pred_label_pos_prob, pred_label_pos_prob_with_mask also exist
-
-    # Define the root data directory
-    data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
 
     # Traverse the directory structure and evaluate each test_preds_probs.csv file
     results = traverse_and_evaluate(data_dir)
