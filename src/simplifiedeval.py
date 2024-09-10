@@ -15,12 +15,12 @@ Please note that the comments which explain the code of simplifiedeval are gener
 
 import datasets  # noqa  # check if datasets is installed
 
-import simplifiedeval.probe_training.gpu_playground as gpu_playground
-import simplifiedeval.probe_training.cpu_playground as cpu_playground
-import simplifiedeval.probe_training.glove_cpu_playground as glove_cpu_playground
-import simplifiedeval.probe_training.glove_gpu_playground as glove_gpu_playground
-import simplifiedeval.test_preds_to_csv as test_preds_to_csv
-import simplifiedeval.csvs_to_dictionary as csvs_to_dictionary
+import src.simplifiedeval.probe_training.gpu_playground as gpu_playground
+import src.simplifiedeval.probe_training.cpu_playground as cpu_playground
+import src.simplifiedeval.probe_training.glove_cpu_playground as glove_cpu_playground
+import src.simplifiedeval.probe_training.glove_gpu_playground as glove_gpu_playground
+import src.simplifiedeval.test_preds_to_csv as test_preds_to_csv
+import src.simplifiedeval.csvs_to_dictionary as csvs_to_dictionary
 
 gpu_playground.main()
 
