@@ -1,7 +1,3 @@
-"""
-## test_preds to CSV
-"""
-
 """1 is NEUTRAL, 2 is regular!!"""
 
 import os
@@ -58,26 +54,30 @@ def traverse_and_process(data_dir, constant_csv_path):
                             process_csv(test_preds_probs_path, output_test_preds_probs_path, constant_csv_path)
 
 
-# Define the constant CSV file path for test data
-constant_csv_path = '/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/generated_eval_dataset_with_mask.csv'
-# Define the root data directory
-data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
+def main():
+    """
+    The script is designed to process CSV files within a specified directory structure by identifying and manipulating
+    `test_preds_probs.csv` files. Initially, it reads these files to extract probability columns `pos_prob1` and
+    `pos_prob2`, or alternatively `prob1` and `prob2`, if the former are not found. These probabilities are then
+    integrated into a constant CSV file (`generated_eval_dataset_with_mask.csv`) after renaming one of its columns from
+    `input_neutral` to `input_with_mask`. The script adds new columns `pred_label_pos_prob` and
+    `pred_label_pos_prob_with_mask` to the constant DataFrame, which store the extracted probabilities. Additionally,
+    it computes the `pred_label` and `pred_label_with_mask` columns by applying a threshold of 0.5 to the probabilities,
+    assigning a value of 1 if the probability is equal to or greater than 0.5, and -1 otherwise. The modified DataFrame,
+    which now contains the augmented data, is saved back to the directory as `test_data_evaluated.csv`. The script
+    features a `process_csv` function that handles the reading, processing, and writing of CSV files,
+    and a `traverse_and_process` function that recursively navigates the directory structure, applying `process_csv` to
+    each relevant `test_preds_probs.csv` file it encounters. This approach ensures that all CSV files within the given
+    directory are systematically processed and updated according to the defined logic.
+    """
+    # Define the constant CSV file path for test data
+    constant_csv_path = '/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/generated_eval_dataset_with_mask.csv'
+    # Define the root data directory
+    data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
 
-# Traverse the directory structure and process each test_preds_probs.csv file
-traverse_and_process(data_dir, constant_csv_path)
+    # Traverse the directory structure and process each test_preds_probs.csv file
+    traverse_and_process(data_dir, constant_csv_path)
 
-"""
-The script is designed to process CSV files within a specified directory structure by identifying and manipulating 
-`test_preds_probs.csv` files. Initially, it reads these files to extract probability columns `pos_prob1` and 
-`pos_prob2`, or alternatively `prob1` and `prob2`, if the former are not found. These probabilities are then 
-integrated into a constant CSV file (`generated_eval_dataset_with_mask.csv`) after renaming one of its columns from 
-`input_neutral` to `input_with_mask`. The script adds new columns `pred_label_pos_prob` and 
-`pred_label_pos_prob_with_mask` to the constant DataFrame, which store the extracted probabilities. Additionally, 
-it computes the `pred_label` and `pred_label_with_mask` columns by applying a threshold of 0.5 to the probabilities, 
-assigning a value of 1 if the probability is equal to or greater than 0.5, and -1 otherwise. The modified DataFrame, 
-which now contains the augmented data, is saved back to the directory as `test_data_evaluated.csv`. The script 
-features a `process_csv` function that handles the reading, processing, and writing of CSV files, 
-and a `traverse_and_process` function that recursively navigates the directory structure, applying `process_csv` to 
-each relevant `test_preds_probs.csv` file it encounters. This approach ensures that all CSV files within the given 
-directory are systematically processed and updated according to the defined logic.
-"""
+
+if __name__ == '__main__':
+    main()

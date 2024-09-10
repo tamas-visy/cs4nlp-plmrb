@@ -1,16 +1,11 @@
-"""
-### Glove GPU playground
-"""
-
 import os
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from datasets import Dataset
 
@@ -24,12 +19,10 @@ test_hashes = ["336359147", "315634198"]
 layers = ["initial", "middle", "final"]
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Load labels
+# Load and extract labels
 train_labels_df = pd.read_csv("/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/train_dataset_processed.csv")
 dataset = Dataset.from_pandas(train_labels_df)
 dataset = dataset.shuffle(seed=42)
-
-# Extract labels
 labels = dataset['label']
 # labels = train_labels_df["label"].values
 # np.random.shuffle(labels)
@@ -152,93 +145,98 @@ def process_and_evaluate(layer, model_name, model, train_data, train_labels, val
     return train_accuracy, val_accuracy, test_preds_labels
 
 
-for lm_folder in os.listdir(data_path):
-    if lm_folder != 'GloveLanguageModel':
-        continue
-    lm_path = os.path.join(data_path, lm_folder)
-    out_lm_path = os.path.join(out_path, lm_folder)
-    if os.path.isdir(lm_path):
-        print("Processing data for", lm_folder)
-        for layer in layers:
-            if layer == 'initial':
-                print("\tProcessing", layer, "layer")
-                train_file = os.path.join(lm_path, f"{layer}_{train_hash}.npy")
-                test_file_1 = os.path.join(lm_path, f"{layer}_{test_hashes[0]}.npy")
-                test_file_2 = os.path.join(lm_path, f"{layer}_{test_hashes[1]}.npy")
+def main():
+    """
+    The script imports essential libraries for data manipulation, machine learning, and deep learning,
+    including `numpy`, `pandas`, `torch`, and `sklearn`. Paths and constants are set for data and output directories,
+    dataset identifiers, and layer names. The script then checks for GPU availability and assigns the device accordingly.
+    Training labels are loaded from a CSV file into a pandas DataFrame, converted into a Hugging Face `Dataset`,
+    shuffled, and labels are extracted. These labels are converted into a PyTorch tensor for further processing.
 
-                train_data = np.load(train_file)
-                test_data_1 = np.load(test_file_1)
-                test_data_2 = np.load(test_file_2)
+    Two PyTorch models are defined: a `LogisticRegressionModel` and a `SimpleMLP` (a simple multi-layer perceptron). A
+    function `train_model` is defined to handle the training process of the models, which includes setting up the loss
+    function and optimizer, iterating through epochs, and calculating training and validation accuracies. The
+    `evaluate_model` function is defined to handle the evaluation of models on test data, but it’s not used directly
+    within the `process_and_evaluate` function.
 
-                train_data, val_data, train_labels, val_labels = train_test_split(train_data, labels,
-                                                                                  test_size=0.2, random_state=42)
+    The `process_and_evaluate` function prepares the data by creating PyTorch `TensorDataset` and `DataLoader` objects
+    for training, validation, and test datasets. It then trains the model using the `train_model` function and generates
+    predictions on the test datasets, returning the training accuracy, validation accuracy, and a DataFrame of predicted
+    probabilities for the test datasets.
 
-                input_dim = train_data.shape[1]
+    The main loop iterates over directories in the data path, focusing only on the `GloveLanguageModel` folder. For each
+    specified layer, it processes the "initial" layer by loading training and test data from `.npy` files, splitting the
+    training data into training and validation sets, and defining the input dimension for the models. A dictionary of
+    models is created, including `LogisticRegressionModel` and `SimpleMLP`.
 
-                models = {
-                    "logistic_regression": LogisticRegressionModel(input_dim).to(device),
-                    "mlp": SimpleMLP(input_dim).to(device),
-                    # "random_forest": RandomForestClassifier(n_estimators=100, random_state=42)
-                }
+    For each model, the `process_and_evaluate` function is called to train and evaluate the model. Results,
+    including test predictions and accuracies, are saved to the specified output directory. Additionally, results for the
+    "middle" and "final" layers are saved using the same trained model, ensuring consistency across layers. This ensures
+    that the models' performance is recorded and evaluated across different data representations.
+    """
 
-                model_types = {
-                    "logistic_regression": "torch",
-                    "mlp": "torch",
-                    "random_forest": "sklearn"
-                }
+    for lm_folder in os.listdir(data_path):
+        if lm_folder != 'GloveLanguageModel':
+            continue
+        lm_path = os.path.join(data_path, lm_folder)
+        out_lm_path = os.path.join(out_path, lm_folder)
+        if os.path.isdir(lm_path):
+            print("Processing data for", lm_folder)
+            for layer in layers:
+                if layer == 'initial':
+                    print("\tProcessing", layer, "layer")
+                    train_file = os.path.join(lm_path, f"{layer}_{train_hash}.npy")
+                    test_file_1 = os.path.join(lm_path, f"{layer}_{test_hashes[0]}.npy")
+                    test_file_2 = os.path.join(lm_path, f"{layer}_{test_hashes[1]}.npy")
 
-                for model_name, model in models.items():
-                    output_dir = os.path.join(out_lm_path, model_name, layer)
-                    print("\t\tTraining", model_name, "model")
-                    train_accuracy, val_accuracy, test_preds_probs = process_and_evaluate(
-                        layer, model_name, model, train_data, train_labels,
-                        val_data, val_labels, test_data_1, test_data_2, model_types[model_name])
-                    print("\t\tTraining for", model_name, "model complete!")
+                    train_data = np.load(train_file)
+                    test_data_1 = np.load(test_file_1)
+                    test_data_2 = np.load(test_file_2)
 
-                    os.makedirs(output_dir, exist_ok=True)
+                    train_data, val_data, train_labels, val_labels = train_test_split(train_data, labels,
+                                                                                      test_size=0.2, random_state=42)
 
-                    test_preds_probs.to_csv(os.path.join(output_dir, "test_preds_probs.csv"), index=False)
+                    input_dim = train_data.shape[1]
 
-                    with open(os.path.join(output_dir, "accuracy.txt"), 'w') as f:
-                        f.write(f"Training Accuracy: {train_accuracy}\nValidation Accuracy: {val_accuracy}\n")
+                    models = {
+                        "logistic_regression": LogisticRegressionModel(input_dim).to(device),
+                        "mlp": SimpleMLP(input_dim).to(device),
+                        # "random_forest": RandomForestClassifier(n_estimators=100, random_state=42)
+                    }
 
-                    layer_alt = ['middle', 'final']
+                    model_types = {
+                        "logistic_regression": "torch",
+                        "mlp": "torch",
+                        "random_forest": "sklearn"
+                    }
 
-                    for layer_mf in layer_alt:
-                        alt_output_dir = os.path.join(out_lm_path, model_name, layer_mf)
-                        os.makedirs(alt_output_dir, exist_ok=True)
+                    for model_name, model in models.items():
+                        output_dir = os.path.join(out_lm_path, model_name, layer)
+                        print("\t\tTraining", model_name, "model")
+                        train_accuracy, val_accuracy, test_preds_probs = process_and_evaluate(
+                            layer, model_name, model, train_data, train_labels,
+                            val_data, val_labels, test_data_1, test_data_2, model_types[model_name])
+                        print("\t\tTraining for", model_name, "model complete!")
 
-                        test_preds_probs.to_csv(os.path.join(alt_output_dir, "test_preds_probs.csv"), index=False)
+                        os.makedirs(output_dir, exist_ok=True)
 
-                        with open(os.path.join(alt_output_dir, "accuracy.txt"), 'w') as f:
-                            f.write(f"Training Accuracy: {train_accuracy}\n")
-                            f.write(f"Validation Accuracy: {val_accuracy}\n")
+                        test_preds_probs.to_csv(os.path.join(output_dir, "test_preds_probs.csv"), index=False)
 
-"""
-The script imports essential libraries for data manipulation, machine learning, and deep learning, 
-including `numpy`, `pandas`, `torch`, and `sklearn`. Paths and constants are set for data and output directories, 
-dataset identifiers, and layer names. The script then checks for GPU availability and assigns the device accordingly. 
-Training labels are loaded from a CSV file into a pandas DataFrame, converted into a Hugging Face `Dataset`, 
-shuffled, and labels are extracted. These labels are converted into a PyTorch tensor for further processing.
+                        with open(os.path.join(output_dir, "accuracy.txt"), 'w') as f:
+                            f.write(f"Training Accuracy: {train_accuracy}\nValidation Accuracy: {val_accuracy}\n")
 
-Two PyTorch models are defined: a `LogisticRegressionModel` and a `SimpleMLP` (a simple multi-layer perceptron). A 
-function `train_model` is defined to handle the training process of the models, which includes setting up the loss 
-function and optimizer, iterating through epochs, and calculating training and validation accuracies. The 
-`evaluate_model` function is defined to handle the evaluation of models on test data, but it’s not used directly 
-within the `process_and_evaluate` function.
+                        layer_alt = ['middle', 'final']
 
-The `process_and_evaluate` function prepares the data by creating PyTorch `TensorDataset` and `DataLoader` objects 
-for training, validation, and test datasets. It then trains the model using the `train_model` function and generates 
-predictions on the test datasets, returning the training accuracy, validation accuracy, and a DataFrame of predicted 
-probabilities for the test datasets.
+                        for layer_mf in layer_alt:
+                            alt_output_dir = os.path.join(out_lm_path, model_name, layer_mf)
+                            os.makedirs(alt_output_dir, exist_ok=True)
 
-The main loop iterates over directories in the data path, focusing only on the `GloveLanguageModel` folder. For each 
-specified layer, it processes the "initial" layer by loading training and test data from `.npy` files, splitting the 
-training data into training and validation sets, and defining the input dimension for the models. A dictionary of 
-models is created, including `LogisticRegressionModel` and `SimpleMLP`.
+                            test_preds_probs.to_csv(os.path.join(alt_output_dir, "test_preds_probs.csv"), index=False)
 
-For each model, the `process_and_evaluate` function is called to train and evaluate the model. Results, 
-including test predictions and accuracies, are saved to the specified output directory. Additionally, results for the 
-"middle" and "final" layers are saved using the same trained model, ensuring consistency across layers. This ensures 
-that the models' performance is recorded and evaluated across different data representations.
-"""
+                            with open(os.path.join(alt_output_dir, "accuracy.txt"), 'w') as f:
+                                f.write(f"Training Accuracy: {train_accuracy}\n")
+                                f.write(f"Validation Accuracy: {val_accuracy}\n")
+
+
+if __name__ == '__main__':
+    main()

@@ -1,7 +1,3 @@
-"""
-## CSVs to Dictionary
-"""
-
 import os
 import pandas as pd
 import json
@@ -147,38 +143,42 @@ def traverse_and_evaluate(data_dir):
     return results
 
 
-# Define the root data directory
-data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
+def main():
+    """
+    This script is designed to evaluate machine learning models by calculating various metrics from CSV files
+    containing prediction results. It begins by importing necessary libraries such as `os`, `pandas`, and `json`. The
+    script defines functions for calculating key metrics: `demographic_parity`, `equalized_odds`,
+    and `relative_sentiment_change`, which compute the mean predictions, equalized odds, and sentiment changes,
+    respectively, grouped by gender.
 
-# Traverse the directory structure and evaluate each test_preds_probs.csv file
-results = traverse_and_evaluate(data_dir)
-with open("IDidAThing.json", "w") as f:
-    json.dump(results, f)
-# Printing the results for verification
-import pprint
+    The `evaluate` function reads an evaluation data CSV file, processes it to calculate the defined metrics for both
+    labels and probabilities, and returns these metrics. It first calculates the negative probabilities and separates the
+    data into negative, positive, binary, and neutral subsets. Accuracy is calculated by comparing true and predicted
+    labels. The function also calculates demographic parity and equalized odds for negative and positive sentiments,
+    and the average relative sentiment change for neutral examples.
 
-pprint.pprint(results)
+    The `read_and_format_accuracies` function reads accuracy values from a text file and formats them as percentages. The
+    `traverse_and_evaluate` function navigates through a directory structure to locate `test_data_evaluated.csv` files,
+    read the corresponding `accuracy.txt` files, and apply the `evaluate` function to compute the metrics. It organizes
+    the results in a nested dictionary structure based on language model, machine learning model, and layer.
 
-"""
-This script is designed to evaluate machine learning models by calculating various metrics from CSV files 
-containing prediction results. It begins by importing necessary libraries such as `os`, `pandas`, and `json`. The 
-script defines functions for calculating key metrics: `demographic_parity`, `equalized_odds`, 
-and `relative_sentiment_change`, which compute the mean predictions, equalized odds, and sentiment changes, 
-respectively, grouped by gender.
+    Finally, the script sets the root data directory and invokes the `traverse_and_evaluate` function to process the
+    evaluation files, saving the results as a JSON file for further analysis and printing them for verification. This
+    comprehensive approach ensures thorough evaluation and systematic organization of results across different models and
+    layers.
+    """
+    # Define the root data directory
+    data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
 
-The `evaluate` function reads an evaluation data CSV file, processes it to calculate the defined metrics for both 
-labels and probabilities, and returns these metrics. It first calculates the negative probabilities and separates the 
-data into negative, positive, binary, and neutral subsets. Accuracy is calculated by comparing true and predicted 
-labels. The function also calculates demographic parity and equalized odds for negative and positive sentiments, 
-and the average relative sentiment change for neutral examples.
+    # Traverse the directory structure and evaluate each test_preds_probs.csv file
+    results = traverse_and_evaluate(data_dir)
+    with open("IDidAThing.json", "w") as f:
+        json.dump(results, f)
+    # Printing the results for verification
+    import pprint
 
-The `read_and_format_accuracies` function reads accuracy values from a text file and formats them as percentages. The 
-`traverse_and_evaluate` function navigates through a directory structure to locate `test_data_evaluated.csv` files, 
-read the corresponding `accuracy.txt` files, and apply the `evaluate` function to compute the metrics. It organizes 
-the results in a nested dictionary structure based on language model, machine learning model, and layer.
+    pprint.pprint(results)
 
-Finally, the script sets the root data directory and invokes the `traverse_and_evaluate` function to process the 
-evaluation files, saving the results as a JSON file for further analysis and printing them for verification. This 
-comprehensive approach ensures thorough evaluation and systematic organization of results across different models and 
-layers.
-"""
+
+if __name__ == '__main__':
+    main()

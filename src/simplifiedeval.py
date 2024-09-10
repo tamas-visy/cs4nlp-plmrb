@@ -13,17 +13,23 @@ Please note that the comments which explain the code of simplifiedeval are gener
 # from google.colab import drive
 # drive.mount('/content/drive')
 
-# !pip install datasets
 import datasets  # noqa  # check if datasets is installed
 
-import simplifiedeval.probe_training.gpu_playground  # noqa  # import will execute code in it's current state
+import simplifiedeval.probe_training.gpu_playground as gpu_playground
+import simplifiedeval.probe_training.cpu_playground as cpu_playground
+import simplifiedeval.probe_training.glove_cpu_playground as glove_cpu_playground
+import simplifiedeval.probe_training.glove_gpu_playground as glove_gpu_playground
+import simplifiedeval.test_preds_to_csv as test_preds_to_csv
+import simplifiedeval.csvs_to_dictionary as csvs_to_dictionary
 
-import simplifiedeval.probe_training.cpu_playground  # noqa  # import will execute code in it's current state
+gpu_playground.main()
 
-import simplifiedeval.probe_training.glove_cpu_playground  # noqa  # import will execute code in it's current state
+cpu_playground.main()
 
-import simplifiedeval.probe_training.glove_gpu_playground  # noqa  # import will execute code in it's current state
+glove_cpu_playground.main()
 
-import simplifiedeval.test_preds_to_csv  # noqa  # import will execute code in it's current state
+glove_gpu_playground.main()
 
-import simplifiedeval.csvs_to_dictionary  # noqa  # import will execute code in it's current state
+test_preds_to_csv.main()
+
+csvs_to_dictionary.main()
