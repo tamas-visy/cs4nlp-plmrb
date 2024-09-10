@@ -18,17 +18,6 @@ test_hashes = ["336359147", "315634198"]
 layers = ["initial", "middle", "final"]
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Load and extract labels
-train_labels_df = pd.read_csv("/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/train_dataset_processed.csv")
-dataset = Dataset.from_pandas(train_labels_df)
-dataset = dataset.shuffle(seed=42)
-labels = dataset['label']
-# labels = train_labels_df["label"].values
-# np.random.shuffle(labels)
-
-# Convert labels to the format required by PyTorch
-labels_torch = torch.tensor(labels, dtype=torch.float32).to(device)
-
 
 def process_and_evaluate(layer, model_name, model, train_data, train_labels, val_data, val_labels, test_data_1,
                          test_data_2, model_type="torch"):
@@ -91,6 +80,11 @@ def main():
     "middle" and "final" layers are saved using the same trained model, ensuring consistency across layers. This ensures
     that the models' performance is recorded and evaluated across different data representations.
     """
+    # Load and extract labels
+    train_labels_df = pd.read_csv("/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/train_dataset_processed.csv")
+    dataset = Dataset.from_pandas(train_labels_df)
+    dataset = dataset.shuffle(seed=42)
+    labels = dataset['label']
 
     for lm_folder in os.listdir(data_path):
         if lm_folder != 'GloveLanguageModel':

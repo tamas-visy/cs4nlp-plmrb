@@ -6,18 +6,14 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from datasets import Dataset
 
+np.random.seed(42)
+
 # Paths and constants
 data_path = "/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed"
 out_path = "/content/drive/MyDrive/outputs_Hf_shuffle"
 train_hash = "499193892"
 test_hashes = ["336359147", "315634198"]
 layers = ["initial", "middle", "final"]
-
-# Load and extract labels
-train_labels_df = pd.read_csv("/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/train_dataset_processed.csv")
-dataset = Dataset.from_pandas(train_labels_df)
-dataset = dataset.shuffle(seed=42)
-labels = dataset['label']
 
 
 def process_and_evaluate(layer, model_name, model, train_data, train_labels, val_data, val_labels, test_data_1,
@@ -57,6 +53,12 @@ def main():
     including Gaussian Naive Bayes. For each model, the `process_and_evaluate` function is called to train and evaluate
     the model. Results, including test predictions and accuracies, are saved to the specified output directory.
     """
+    # Load and extract labels
+    train_labels_df = pd.read_csv("/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/train_dataset_processed.csv")
+    dataset = Dataset.from_pandas(train_labels_df)
+    dataset = dataset.shuffle(seed=42)
+    labels = dataset['label']
+
     for lm_folder in os.listdir(data_path):
         if lm_folder == 'GloveLanguageModel':
             continue

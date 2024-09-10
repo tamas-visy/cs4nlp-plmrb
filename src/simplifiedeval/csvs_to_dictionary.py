@@ -3,8 +3,6 @@ import pandas as pd
 import json
 
 
-# pred_label_pos_prob, pred_label_pos_prob_with_mask also exist
-
 def demographic_parity(df, gender_column='group', prediction_column='pred_label'):
     mean_prediction = df.groupby(gender_column)[prediction_column].mean()
     return mean_prediction
@@ -167,6 +165,8 @@ def main():
     comprehensive approach ensures thorough evaluation and systematic organization of results across different models and
     layers.
     """
+    # pred_label_pos_prob, pred_label_pos_prob_with_mask also exist
+
     # Define the root data directory
     data_dir = '/content/drive/MyDrive/outputs_Hf_shuffle'
 

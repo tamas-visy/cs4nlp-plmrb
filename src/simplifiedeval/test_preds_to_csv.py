@@ -1,5 +1,3 @@
-"""1 is NEUTRAL, 2 is regular!!"""
-
 import os
 import pandas as pd
 
@@ -70,6 +68,8 @@ def main():
     each relevant `test_preds_probs.csv` file it encounters. This approach ensures that all CSV files within the given
     directory are systematically processed and updated according to the defined logic.
     """
+    # 1 is NEUTRAL, 2 is regular!
+
     # Define the constant CSV file path for test data
     constant_csv_path = '/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/generated_eval_dataset_with_mask.csv'
     # Define the root data directory
