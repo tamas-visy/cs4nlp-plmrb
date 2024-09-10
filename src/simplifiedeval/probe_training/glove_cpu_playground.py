@@ -7,30 +7,9 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from datasets import Dataset
 
+from src.simplifiedeval.probe_training.utils import process_and_evaluate_cpu
+
 np.random.seed(42)
-
-
-def process_and_evaluate(layer, model_name, model, train_data, train_labels, val_data, val_labels, test_data_1,
-                         test_data_2):
-    model.fit(train_data, train_labels)
-    val_preds = model.predict(val_data)
-    val_accuracy = accuracy_score(val_labels, val_preds)
-    train_preds = model.predict(train_data)
-    train_accuracy = accuracy_score(train_labels, train_preds)
-
-    test_data_1_pred_labels = model.predict(test_data_1)
-    test_data_1_pred_pos_probs = model.predict_proba(test_data_1)[:, 1]
-
-    test_data_2_pred_labels = model.predict(test_data_2)
-    test_data_2_pred_pos_probs = model.predict_proba(test_data_2)[:, 1]
-
-    test_preds_labels = pd.DataFrame({
-        "pos_prob1": test_data_1_pred_pos_probs,
-        "pos_prob2": test_data_2_pred_pos_probs
-    })
-    # During visualization or wtv, map negative to -1 and positive to +1
-
-    return train_accuracy, val_accuracy, test_preds_labels
 
 
 def main(data_path, out_path, train_hash, test_hashes, layers):
@@ -87,10 +66,13 @@ def main(data_path, out_path, train_hash, test_hashes, layers):
                     }
                     for model_name, model in models.items():
                         print("\t\tTraining", model_name, "model")
-                        train_accuracy, val_accuracy, test_preds_probs = process_and_evaluate(layer, model_name, model,
-                                                                                              train_data, train_labels,
-                                                                                              val_data, val_labels,
-                                                                                              test_data_1, test_data_2)
+                        train_accuracy, val_accuracy, test_preds_probs = process_and_evaluate_cpu(layer, model_name,
+                                                                                                  model,
+                                                                                                  train_data,
+                                                                                                  train_labels,
+                                                                                                  val_data, val_labels,
+                                                                                                  test_data_1,
+                                                                                                  test_data_2)
                         print("\t\tTraining for", model_name, "model complete!")
 
                         output_dir = os.path.join(out_lm_path, model_name, layer)

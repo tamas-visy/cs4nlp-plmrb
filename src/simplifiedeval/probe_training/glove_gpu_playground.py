@@ -2,47 +2,15 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
 
-from src.simplifiedeval.probe_training.models import train_model, LogisticRegressionModel, SimpleMLP
+from src.simplifiedeval.probe_training.models import LogisticRegressionModel, SimpleMLP
+from src.simplifiedeval.probe_training.utils import process_and_evaluate_gpu
 
 np.random.seed(42)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-
-def process_and_evaluate(layer, model_name, model, train_data, train_labels, val_data, val_labels, test_data_1,
-                         test_data_2, model_type="torch"):
-    train_dataset = TensorDataset(torch.tensor(train_data, dtype=torch.float32),
-                                  torch.tensor(train_labels, dtype=torch.float32))
-    val_dataset = TensorDataset(torch.tensor(val_data, dtype=torch.float32),
-                                torch.tensor(val_labels, dtype=torch.float32))
-    test_dataset_1 = TensorDataset(torch.tensor(test_data_1, dtype=torch.float32))
-    test_dataset_2 = TensorDataset(torch.tensor(test_data_2, dtype=torch.float32))
-
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
-    test_loader_1 = DataLoader(test_dataset_1, batch_size=32, shuffle=False)
-    test_loader_2 = DataLoader(test_dataset_2, batch_size=32, shuffle=False)
-
-    train_accuracy, val_accuracy = train_model(model, train_loader, val_loader)
-    # test_preds_1 = evaluate_model(model, test_loader_1)
-    # test_preds_2 = evaluate_model(model, test_loader_2)
-
-    with torch.no_grad():
-        test_preds_1_pos_probs = model(
-            torch.tensor(test_data_1, dtype=torch.float32).to(device)).cpu().numpy().squeeze()
-        test_preds_2_pos_probs = model(
-            torch.tensor(test_data_2, dtype=torch.float32).to(device)).cpu().numpy().squeeze()
-
-    test_preds_labels = pd.DataFrame({
-        "pos_prob1": test_preds_1_pos_probs,
-        "pos_prob2": test_preds_2_pos_probs
-    })
-
-    return train_accuracy, val_accuracy, test_preds_labels
 
 
 def main(data_path, out_path, train_hash, test_hashes, layers):
@@ -118,7 +86,7 @@ def main(data_path, out_path, train_hash, test_hashes, layers):
                     for model_name, model in models.items():
                         output_dir = os.path.join(out_lm_path, model_name, layer)
                         print("\t\tTraining", model_name, "model")
-                        train_accuracy, val_accuracy, test_preds_probs = process_and_evaluate(
+                        train_accuracy, val_accuracy, test_preds_probs = process_and_evaluate_gpu(
                             layer, model_name, model, train_data, train_labels,
                             val_data, val_labels, test_data_1, test_data_2, model_types[model_name])
                         print("\t\tTraining for", model_name, "model complete!")
