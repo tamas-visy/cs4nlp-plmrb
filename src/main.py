@@ -4,8 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 def main():
     import environment
 
-    if not environment.get_flag("SKIP_VERIFYING_ENVIRONMENT"):
-        environment.verify()
+    environment.verify()
     DEVELOP_MODE = environment.get_flag("DEVELOP_MODE")
 
     import logging
@@ -71,7 +70,7 @@ def main():
     lms: List[TransformerModel] = [
         # GPT2LanguageModel(),  # idx: G
         # BERTLanguageModel(),  # idx: B
-        LLaMALanguageModel(half_precision=True), #idx: L
+        LLaMALanguageModel(half_precision=True),  # idx: L
         # RoBERTaLanguageModel(),  # idx: R
         # ELECTRALanguageModel(),  # idx: E
         # GloveLanguageModel(),  # idx: G

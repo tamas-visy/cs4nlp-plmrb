@@ -9,7 +9,8 @@ PACKAGE_IMPORT_REPLACEMENTS = {
     'pyyaml': 'yaml',
     'scikit-learn': 'sklearn',
     'huggingface-hub': 'huggingface_hub',
-    'python-dotenv': 'dotenv'
+    'python-dotenv': 'dotenv',
+    'protobuf': 'google.protobuf',
 }
 
 
@@ -24,7 +25,11 @@ def get_flag(name: str) -> bool:
             raise ValueError(f"Can't parse value of {name}=\"{_val}\"")
 
 
-def verify() -> bool:
+def verify(force=False) -> bool:
+    if get_flag("SKIP_VERIFYING_ENVIRONMENT") and not force:
+        print("> Not verifying env")
+        return None
+
     # Check python version
     if sys.version_info.major != REQUIRED_VERSION['major']:
         raise RuntimeError(f"Expected major version {REQUIRED_VERSION['major']}, found {sys.version_info.major}")

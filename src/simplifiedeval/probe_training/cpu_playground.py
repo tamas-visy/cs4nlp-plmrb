@@ -26,7 +26,7 @@ def main(data_path, out_path, train_hash, test_hashes, layers):
     the model. Results, including test predictions and accuracies, are saved to the specified output directory.
     """
     # Load and extract labels
-    train_labels_df = pd.read_csv("/content/drive/MyDrive/cs4nlp-plmrb-main/data/processed/train_dataset_processed.csv")
+    train_labels_df = pd.read_csv("data/processed/train_dataset_processed.csv")
     dataset = Dataset.from_pandas(train_labels_df)
     dataset = dataset.shuffle(seed=42)
     labels = dataset['label']
