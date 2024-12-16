@@ -186,9 +186,7 @@ class IOHandler:
     @classmethod
     def get_dataset_2(cls) -> TextDataset:
         """Loads dataset 2, using cached files if available."""
-        processed_dataset_2_path = IOHandler.processed_path_to(
-            "generated_eval_dataset_with_mask.csv"
-        )
+        processed_dataset_2_path = "randomized_dataset.csv"
         dataset_2 = Dataset.from_csv(processed_dataset_2_path)
         logger.info(f"Found processed dataset with {len(dataset_2)} rows")
         return dataset_2
