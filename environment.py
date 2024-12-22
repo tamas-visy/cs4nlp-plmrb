@@ -40,13 +40,21 @@ def verify() -> bool:
     reqs = [line[:line.find("#")] for line in reqs]  # Clean comments
     reqs = [line[:line.find("--")] for line in reqs]  # Clean arguments to pip
     reqs = [line[:line.find("==")] for line in reqs]  # Clean version values
-    requirements = [line for line in reqs if len(line) > 0]  # Clean newlines
+    requirements = [line for line in reqs if len(line) > 0]  # Remove empty lines
 
     for module in requirements:
         if module in PACKAGE_IMPORT_REPLACEMENTS:
             module = PACKAGE_IMPORT_REPLACEMENTS[module]
-        importlib.import_module(module)
-        print(f"\t> {module} available")
+        try:
+            # Special case for protobuf
+            if module == "protobuf":
+                importlib.import_module("google.protobuf")
+            else:
+                importlib.import_module(module)
+            print(f"\t> {module} available")
+        except ImportError as e:
+            print(f"Error importing {module}: {e}")
+            raise
     print("> All packages available")
 
     # Check .env file
@@ -66,7 +74,7 @@ def verify() -> bool:
         import torch
         if not torch.cuda.is_available():
             raise RuntimeError("Expected CUDA, but CUDA is not available")
-        print(f"> CUDA v{torch.cuda_version} found")
+        print(f"> CUDA v{torch.version.cuda} found")  # Use torch.version.cuda instead of torch.cuda_version
     else:
         print(f"! Not checking for CUDA")
 

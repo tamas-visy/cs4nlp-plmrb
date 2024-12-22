@@ -205,7 +205,10 @@ class GPT2LanguageModel(TransformerModel):
 
 class LLaMALanguageModel(TransformerModel):
     def __init__(self, model_name='meta-llama/Llama-2-7b-hf', half_precision=False, device=None):
-        login(token=os.getenv("HUGGINGFACE_TOKEN"))  # login might be needed for tokenizer creation already
+        token = os.getenv("HUGGINGFACE_TOKEN")
+        if not token:
+            raise ValueError("HUGGINGFACE_TOKEN environment variable not set")
+        login(token=token, write_permission=False)  # Changed to write_permission=False
         logger.debug("Logged in")
         super().__init__(model_name, LlamaForCausalLM, LlamaTokenizer,
                          half_precision=half_precision, device=device, batch_size=8)
