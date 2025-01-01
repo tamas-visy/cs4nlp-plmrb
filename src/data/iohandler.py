@@ -187,7 +187,20 @@ class IOHandler:
     def get_dataset_2(cls) -> TextDataset:
         """Loads dataset 2, using cached files if available."""
         processed_dataset_2_path = "randomized_dataset.csv"
+        # Load the CSV
         dataset_2 = Dataset.from_csv(processed_dataset_2_path)
+        
+        # Prepare the dataset for evaluation
+        dataset_2 = dataset_2.rename_column("TrueSentiment", "label")
+        
+        # Create group and subject columns based on Gender and TemplateID
+        def add_group_subject(example):
+            example["group"] = f"gender_{example['Gender']}"
+            example["subject"] = f"template_{example['TemplateID']}"
+            return example
+        
+        dataset_2 = dataset_2.map(add_group_subject)
+        
         logger.info(f"Found processed dataset with {len(dataset_2)} rows")
         return dataset_2
 

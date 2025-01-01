@@ -69,14 +69,14 @@ def main():
     # TODO also evaluate some baseline
 
     lms: List[TransformerModel] = [
-        # GPT2LanguageModel(),  # idx: G
-        # BERTLanguageModel(),  # idx: B
+        #GPT2LanguageModel(),  # idx: G
+        ###BERTLanguageModel(),  # idx: B
         LLaMALanguageModel(half_precision=True), #idx: L
-        # RoBERTaLanguageModel(),  # idx: R
-        # ELECTRALanguageModel(),  # idx: E
-        # GloveLanguageModel(),  # idx: G
-        # T5LanguageModel(),  # idx: T
-        # XLNetLanguageModel(),  # idx: X
+        #RoBERTaLanguageModel(),  # idx: R
+        ###ELECTRALanguageModel(),  # idx: E
+        ###GloveLanguageModel(),  # idx: G
+        #T5LanguageModel(),  # idx: T
+        ###XLNetLanguageModel(),  # idx: X
     ]
     probe_factory: Type[Probe] = MLPProbe
     for lm in lms:
@@ -92,7 +92,7 @@ def main():
                 probe_factory=probe_factory,
                 dataset_1=dataset_1,
                 dataset_2=dataset_2,
-                only_generate_encodings=True,  # enable this to skip probe training
+                only_generate_encodings=False,  # enable this to skip probe training
             )
             if result is not None:
                 result["value"] = lm.__class__.__name__
@@ -118,7 +118,7 @@ def main():
     logger.debug(f"Evaluated sentiments")
     logger.info(f"The results are:\n{results}")
 
-    with open("out/results.json", "w") as f:
+    with open("out/results_llama.json", "w") as f:
         results.to_json(f, indent=4)
 
 

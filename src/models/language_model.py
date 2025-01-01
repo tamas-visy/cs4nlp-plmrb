@@ -52,6 +52,11 @@ class GloveLanguageModel(LanguageModel):
         self.embeddings = IOHandler.load_glove_embeddings(version, self.embedding_dim)
         self.aggregation = aggregation
 
+    def encode(self, texts: TextData, result_type: int | Literal["initial", "final", "middle"] = "final",
+               agg_func=None, caching=True) -> EncodingData:
+        """Returns the encodings of texts. The result_type parameter is ignored for GloVe embeddings."""
+        return self._encode(texts)
+
     def _encode(self, texts: TextData) -> EncodingData:
         embeddings = []
         for text in tqdm(texts):
@@ -243,31 +248,35 @@ class T5LanguageModel(TransformerModel):
 
     @property
     def num_encoder_layers(self):
-        raise NotImplementedError  # encoder is a "T5Stack" object, how to access depth? Note: this also breaks `middle`
+        return len(self.model.encoder.block)  # T5 uses 'block' instead of 'layer'
 
-    def _get_initial(self, **kwargs):
-        # kwargs.pop("decoder_input_ids")  # not needed in encoder part
-        # return self.model.encoder(**kwargs).last_hidden_state
-        raise NotImplementedError  # I don't think we can access an initial embedding this way, we only see the last val
+    def _get_initial(self, input_ids, decoder_input_ids=None, **kwargs):
+        # Get embeddings directly from the shared embedding layer
+        return self.model.shared(input_ids)
+
+    def _get_final(self, **kwargs):
+        # Only use encoder outputs
+        return self.model.encoder(**kwargs).last_hidden_state
+
+    def _get_at(self, at: int, **kwargs):
+        # Only use encoder hidden states
+        return self.model.encoder(**kwargs, output_hidden_states=True).hidden_states[at]
 
     def _create_model_inputs(self, text: str) -> dict:
         encoded_input = super()._create_model_inputs(text)
-        # Create decoder input ids
-        decoder_input_ids = self.tokenizer('<pad>', return_tensors='pt').input_ids.to(self.device)
-        return dict(input_ids=encoded_input.input_ids, decoder_input_ids=decoder_input_ids)
+        # We only need input_ids for encoder-only operation
+        return dict(input_ids=encoded_input.input_ids)
 
 
 class XLNetLanguageModel(TransformerModel):
     def __init__(self, model_name='xlnet-base-cased', device=None):
         super().__init__(model_name, model_class=XLNetModel, tokenizer_class=XLNetTokenizer, device=device)
+        self._get_initial_can_be_batched = False
 
     @property
     def num_encoder_layers(self):
         return len(self.model.layer)
 
     def _get_initial(self, input_ids, attention_mask=None, **kwargs):
-        # Only arg that is accepted
-        if attention_mask is not None:
-            # verify that all values are one in the mask even if we don't use it
-            assert attention_mask.all()
+        # Remove attention mask for initial embeddings
         return self.model.word_embedding(input=input_ids)
