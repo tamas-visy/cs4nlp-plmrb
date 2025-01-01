@@ -209,24 +209,48 @@ class GPT2LanguageModel(TransformerModel):
 
 
 class LLaMALanguageModel(TransformerModel):
+    """LLaMA implementation modified to work with decoder-only architecture.
+    Unlike encoder-decoder models, LLaMA uses a single stack of transformer layers,
+    so we need to handle layer access differently."""
+    
     def __init__(self, model_name='meta-llama/Llama-2-7b-hf', half_precision=False, device=None):
         token = os.getenv("HUGGINGFACE_TOKEN")
         if not token:
             raise ValueError("HUGGINGFACE_TOKEN environment variable not set")
-        login(token=token, write_permission=False)  # Changed to write_permission=False
+        login(token=token, write_permission=False)
         logger.debug("Logged in")
         super().__init__(model_name, LlamaForCausalLM, LlamaTokenizer,
                          half_precision=half_precision, device=device, batch_size=8)
-        # Add a padding token if not already present
-
-        self.tokenizer.add_special_tokens({"pad_token": "<pad>"})  # why not self.tokenizer.eos_token?
+        
+        self.tokenizer.add_special_tokens({"pad_token": "<pad>"})
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
-        # self._get_initial_can_be_batched = False  # TODO check if necessary
 
-    def _get_initial(self, **kwargs):
-        # No model.embeddings, no model.wte, nothing else found...
-        return self._get_at(0, **kwargs)
+    @property
+    def num_encoder_layers(self):
+        """Get number of transformer layers in LLaMA.
+        Fixed to use model.model.layers instead of looking for an encoder,
+        as LLaMA is decoder-only and doesn't have an encoder component.
+        This correctly counts the number of transformer layers in the model."""
+        return len(self.model.model.layers)
+
+    def _get_initial(self, input_ids, attention_mask=None, **kwargs):
+        """Get initial embeddings directly from LLaMA's embedding layer.
+        Now uses embed_tokens to get initial embeddings directly,
+        which is simpler and more reliable than using _get_at(0)."""
+        return self.model.model.embed_tokens(input_ids)
+
+    def _get_final(self, **kwargs):
+        """Get final hidden states from the model.
+        Part of proper hidden states handling, configured to get
+        states from the final layer of the model."""
+        return self.model(**kwargs).hidden_states[-1]
+
+    def _get_at(self, at: int, **kwargs):
+        """Get hidden states from a specific layer.
+        Part of proper hidden states handling, configured to get
+        states from any specified layer in the model."""
+        return self.model(**kwargs, output_hidden_states=True).hidden_states[at]
 
 
 class RoBERTaLanguageModel(TransformerModel):
